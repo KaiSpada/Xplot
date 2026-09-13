@@ -1,0 +1,3938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>χplot</title>
+<style>
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #1c1f25; }
+body { font-family: system-ui, -apple-system, sans-serif; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Top toolbar -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark">χ</span>
+      <span class="brand-name">plot</span>
+    </div>
+    <div class="tool-cluster" id="toolCluster">
+      <button class="tool" data-tool="pen" title="Pen (P)">
+        <svg viewBox="0 0 20 20" width="16" height="16"><path d="M3 17 L13 7 L15 9 L5 19 Z M14 6 L16 4 L18 6 L16 8 Z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span class="tool-key">P</span>
+      </button>
+      <button class="tool" data-tool="eraser" title="Eraser (E)">
+        <svg viewBox="0 0 20 20" width="16" height="16"><path d="M4 14 L10 4 L17 8 L13 16 L7 16 Z" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="7" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span class="tool-key">E</span>
+      </button>
+      <button class="tool" data-tool="select" title="Select (S)">
+        <svg viewBox="0 0 20 20" width="16" height="16"><rect x="3" y="3" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2"/></svg>
+        <span class="tool-key">S</span>
+      </button>
+      <button class="tool" data-tool="text" title="Text / LaTeX (T)">
+        <svg viewBox="0 0 20 20" width="16" height="16"><path d="M4 5 L16 5 M10 5 L10 16" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span class="tool-key">T</span>
+      </button>
+      <button class="tool" id="imageUploadBtn" title="Insert image — also drop a file or paste with ⌘V / Ctrl+V">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="14" height="12" rx="1"/>
+          <circle cx="7.5" cy="8.5" r="1.3"/>
+          <path d="M3 14 L7 10 L11 13 L14 10 L17 13"/>
+        </svg>
+        <span class="tool-key">I</span>
+      </button>
+      <button class="tool" data-tool="graph" title="Plot equation (1)">
+        <svg viewBox="0 0 20 20" width="16" height="16"><path d="M3 17 L3 3 M3 17 L17 17 M5 14 Q9 6 16 5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span class="tool-key">1</span>
+      </button>
+      <button class="tool" data-tool="axes2d" title="Insert 2D axes (2)">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- vertical axis with arrowheads -->
+          <line x1="10" y1="2" x2="10" y2="18"/>
+          <path d="M8.6 3.4 L10 2 L11.4 3.4"/>
+          <path d="M8.6 16.6 L10 18 L11.4 16.6"/>
+          <!-- horizontal axis with arrowheads -->
+          <line x1="2" y1="10" x2="18" y2="10"/>
+          <path d="M3.4 8.6 L2 10 L3.4 11.4"/>
+          <path d="M16.6 8.6 L18 10 L16.6 11.4"/>
+        </svg>
+        <span class="tool-key">2</span>
+      </button>
+      <button class="tool" data-tool="axes3d" title="Insert 3D axes (3)">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- origin around (10, 10). z up, x down-left, y nearly horizontal-right -->
+          <!-- z axis up, with arrowhead -->
+          <path d="M10 10 L10 2 M8.8 3.2 L10 2 L11.2 3.2"/>
+          <!-- x axis down-left at 215°, with arrowhead -->
+          <path d="M10 10 L3 15 M4.9 14.7 L3 15 L3.7 13.4"/>
+          <!-- y axis horizontal-right with very slight down, with arrowhead -->
+          <path d="M10 10 L18 11 M16.5 9.7 L18 11 L16.4 12.3"/>
+        </svg>
+        <span class="tool-key">3</span>
+      </button>
+    </div>
+
+    <div class="control-cluster">
+      <label class="control" title="Pen color">
+        <span class="control-label">Color</span>
+        <input type="color" id="penColor" value="#1a1a1a">
+      </label>
+      <label class="control" title="Background">
+        <span class="control-label">Paper</span>
+        <input type="color" id="bgColor" value="#ffffff">
+      </label>
+      <label class="control slider-control" title="Stroke width">
+        <span class="control-label">Size</span>
+        <select id="penSize" class="size-select">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="4" selected>4</option>
+          <option value="8">8</option>
+          <option value="16">16</option>
+          <option value="32">32</option>
+          <option value="64">64</option>
+        </select>
+        <button class="size-reset-btn" id="sizeResetBtn" title="Reset size to default" type="button">
+          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+        </button>
+        <button class="size-reset-btn" id="sizeLockBtn" title="Lock stroke size to current zoom (L)" type="button">
+          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sizeLockIcon">
+            <!-- Default: open padlock -->
+            <rect x="5" y="11" width="14" height="10" rx="2"/>
+            <path d="M8 11 V7 a4 4 0 0 1 8 0"/>
+          </svg>
+        </button>
+      </label>
+    </div>
+
+    <div class="action-cluster">
+      <button class="ctrl-btn icon-only" id="undoBtn" title="Undo (⌘Z)">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 14 4 9l5-5"/>
+          <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
+        </svg>
+      </button>
+      <button class="ctrl-btn icon-only" id="redoBtn" title="Redo (⌘⇧Z)">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 14 20 9l-5-5"/>
+          <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/>
+        </svg>
+      </button>
+      <button class="ctrl-btn" id="resetBtn" title="Clear everything">Reset</button>
+    </div>
+  </div>
+
+  <!-- Main work area -->
+  <div class="work-area">
+    <aside class="side-panel">
+      <div class="panel-header">
+        <span class="panel-title">Layers</span>
+        <button class="icon-btn" id="addLayerBtn" title="Add layer">+</button>
+      </div>
+      <div class="layer-list" id="layerList"></div>
+
+      <div class="history-panel" id="historyPanel">
+        <div class="panel-header">
+          <span class="panel-title">History</span>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
+      <div class="panel-footer">
+        <div class="zoom-bar-wrap">
+          <div class="zoom-bar-row">
+            <span class="zoom-label">Zoom</span>
+            <input type="text" id="zoomReadout" class="zoom-readout" value="100%" title="Click to enter a zoom percentage" spellcheck="false">
+          </div>
+          <input type="range" id="zoomSlider" class="zoom-slider" min="0" max="1000" value="500" step="1">
+          <div class="zoom-bar-row zoom-range-labels">
+            <span>1%</span>
+            <span>4000%</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="mainCanvas"></canvas>
+      <div class="embed-layer" id="embedLayer"></div>
+      <!-- Top-right floating toolbar: grid + reset view (always visible) -->
+      <div class="canvas-view-toolbar">
+        <button class="ctrl-btn icon-only" id="gridBtn" title="Toggle grid">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="1"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+            <line x1="15" y1="3" x2="15" y2="21"/>
+            <line x1="3" y1="9" x2="21" y2="9"/>
+            <line x1="3" y1="15" x2="21" y2="15"/>
+          </svg>
+        </button>
+        <button class="ctrl-btn icon-only" id="resetViewBtn" title="Reset view">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12 L12 3 L21 12"/>
+            <path d="M5 10 L5 21 L19 21 L19 10"/>
+            <path d="M10 21 L10 14 L14 14 L14 21"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Watermark -->
+      <div class="canvas-watermark">made by Kai Spada</div>
+    </div>
+  </div>
+
+  <!-- Graph modal -->
+  <div class="modal-backdrop" id="graphModal" style="display:none;">
+    <div class="modal graph-modal">
+      <div class="modal-head">
+        <span>Insert Plot</span>
+        <button class="modal-close" data-close="graphModal">×</button>
+      </div>
+      <div class="modal-body graph-body">
+        <label class="g-input-row">
+          <span class="g-label">equation</span>
+          <input type="text" id="g1d_fn" value="" autocomplete="off" spellcheck="false">
+          <div class="latex-render" id="g1d_render"></div>
+        </label>
+        <div class="graph-settings">
+          <div class="gs-row gs-row-ranges">
+            <label class="gs-field gs-range">
+              <span class="gs-label">x domain</span>
+              <input type="number" id="gs_xMin" value="-10" step="any">
+              <span class="gs-sep">to</span>
+              <input type="number" id="gs_xMax" value="10" step="any">
+            </label>
+            <label class="gs-field gs-range">
+              <span class="gs-label">y range</span>
+              <input type="number" id="gs_yMin" value="-6" step="any">
+              <span class="gs-sep">to</span>
+              <input type="number" id="gs_yMax" value="6" step="any">
+            </label>
+          </div>
+          <div class="gs-row gs-row-labels">
+            <div class="gs-half gs-labels-group">
+              <label class="gs-field gs-label-field">
+                <span class="gs-label">x label</span>
+                <input type="text" id="gs_xLabel" value="x" autocomplete="off" spellcheck="false">
+              </label>
+              <label class="gs-field gs-label-field">
+                <span class="gs-label">y label</span>
+                <input type="text" id="gs_yLabel" value="y" autocomplete="off" spellcheck="false">
+              </label>
+            </div>
+            <div class="gs-half gs-actions-half">
+              <div class="gs-row-actions">
+                <button type="button" class="gs-action" id="gs_autoFitBtn" title="Fit y range to function values">Fit y to plot</button>
+                <label class="gs-toggle">
+                  <input type="checkbox" id="gs_showTicks">
+                  <span class="gs-toggle-track"><span class="gs-toggle-thumb"></span></span>
+                  <span class="gs-toggle-label">Show ticks</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="graph-preview-wrap">
+          <div class="graph-preview" id="graphPreview_box"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="ctrl-btn" data-close="graphModal">Cancel</button>
+        <button class="ctrl-btn primary" id="graphPlace">Place</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="modal-backdrop" id="confirmModal" style="display:none;">
+    <div class="modal confirm-modal">
+      <div class="modal-head">
+        <span id="confirmTitle">Confirm</span>
+      </div>
+      <div class="modal-body">
+        <div id="confirmMessage" class="confirm-message"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="ctrl-btn" id="confirmCancel">Cancel</button>
+        <button class="ctrl-btn primary warn" id="confirmOk">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@500&display=swap');
+
+:root {
+  --paper: #ffffff;
+  --ink: #1a1a1a;
+  --chrome-bg: #1f2127;
+  --chrome-bg-2: #272a31;
+  --chrome-line: #353841;
+  --chrome-line-strong: #454853;
+  --chrome-text: #d8d6d0;
+  --chrome-text-soft: #8a8c93;
+  --accent: #6b8cce;
+  --accent-soft: #2c3548;
+  --warn: #d97765;
+  --shadow: 0 1px 0 rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.18);
+  --serif: 'Fraunces', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --hand: 'Caveat', cursive;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: #15171b;
+  font-family: var(--serif);
+  color: var(--chrome-text);
+  font-feature-settings: "ss01", "ss02";
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* Re-enable text selection only inside actual editable fields */
+input, textarea, [contenteditable="true"], .embed.editing {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+#app { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; background: var(--chrome-bg);
+  border-bottom: 1px solid var(--chrome-line); flex-wrap: nowrap; min-width: 0;
+}
+.brand { display: flex; align-items: center; gap: 6px; }
+.brand-mark { font-family: var(--serif); font-size: 22px; font-weight: 500; font-style: italic; color: var(--accent); line-height: 1; transform: translateY(-5px); }
+.brand-name { font-family: var(--serif); font-size: 14px; letter-spacing: 0.02em; color: var(--chrome-text-soft); font-weight: 500; }
+
+.tool-cluster, .control-cluster, .action-cluster { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.action-cluster { margin-left: auto; }
+.tool-cluster { padding: 0 12px; border-left: 1px solid var(--chrome-line); border-right: 1px solid var(--chrome-line); }
+
+.tool {
+  position: relative; width: 36px; height: 36px;
+  border: 1px solid transparent; background: transparent; border-radius: 6px;
+  cursor: pointer; color: var(--chrome-text-soft);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+}
+.tool:hover { background: var(--chrome-line); color: var(--chrome-text); }
+.tool.active { background: var(--accent-soft); color: var(--accent); border-color: rgba(107,140,206,0.3); }
+.tool-key {
+  position: absolute; bottom: 1px; right: 2px;
+  font-family: var(--mono); font-size: 8px; color: var(--chrome-text-soft); opacity: 0.7;
+}
+.tool.active .tool-key { color: var(--accent); opacity: 1; }
+
+.control { display: flex; align-items: center; gap: 6px; padding: 4px 6px; }
+.control-label { font-size: 11px; letter-spacing: 0.05em; color: var(--chrome-text-soft); font-family: var(--mono); }
+.control input[type="color"] { width: 22px; height: 22px; border: 1px solid var(--chrome-line-strong); border-radius: 4px; cursor: pointer; padding: 0; background: none; }
+.control input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.control input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
+
+.size-select {
+  font-family: var(--mono); font-size: 12px;
+  background: var(--chrome-bg-2); color: var(--chrome-text);
+  border: 1px solid var(--chrome-line-strong); border-radius: 4px;
+  padding: 3px 22px 3px 8px;
+  cursor: pointer; outline: none;
+  /* Custom caret instead of native chevron */
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'><path d='M1 3 L4 6 L7 3' fill='none' stroke='%23888' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px;
+}
+.size-select:focus { border-color: var(--accent); }
+.size-reset-btn { width: 20px; height: 20px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--chrome-text-soft); cursor: pointer; transition: color 0.12s, border-color 0.12s; margin-left: 2px; }
+.size-reset-btn:hover { color: var(--chrome-text); border-color: var(--chrome-line-strong); }
+.size-reset-btn:active { color: var(--accent); }
+.size-reset-btn.locked { color: var(--accent); border-color: rgba(107,140,206,0.3); background: var(--accent-soft); }
+
+.ctrl-btn {
+  padding: 6px 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+  background: transparent; border: 1px solid var(--chrome-line-strong);
+  color: var(--chrome-text); border-radius: 5px; cursor: pointer; transition: all 0.12s;
+}
+.ctrl-btn:hover { background: var(--chrome-line); border-color: var(--chrome-text-soft); }
+.ctrl-btn.primary { background: var(--accent); color: #0d0e11; border-color: var(--accent); }
+.ctrl-btn.primary:hover { background: #82a0d8; border-color: #82a0d8; }
+.ctrl-btn.full { width: 100%; }
+.ctrl-btn.active { background: var(--accent-soft); color: var(--accent); border-color: rgba(107,140,206,0.3); }
+.ctrl-btn.icon-only { padding: 6px 8px; display: inline-flex; align-items: center; justify-content: center; }
+.ctrl-btn.icon-only svg { display: block; }
+.ctrl-btn.disabled { opacity: 0.32; pointer-events: none; }
+
+.work-area { flex: 1; display: flex; overflow: hidden; }
+.side-panel { width: 220px; background: var(--chrome-bg); border-right: 1px solid var(--chrome-line); display: flex; flex-direction: column; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 8px; }
+.panel-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--chrome-text-soft); }
+.icon-btn { width: 22px; height: 22px; border: 1px solid var(--chrome-line-strong); background: transparent; border-radius: 4px; cursor: pointer; color: var(--chrome-text-soft); font-size: 14px; line-height: 1; }
+.icon-btn:hover { background: var(--chrome-line); color: var(--chrome-text); }
+.layer-list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 8px; }
+.layer-row { display: flex; align-items: center; gap: 6px; padding: 10px 8px; min-height: 38px; border-radius: 5px; cursor: pointer; margin-bottom: 2px; border: 1px solid transparent; position: relative; }
+.layer-row:hover { background: var(--chrome-line); }
+.layer-row:focus { outline: none; box-shadow: 0 0 0 1px var(--accent); }
+.layer-row.active { background: var(--accent-soft); border-color: rgba(107,140,206,0.25); }
+.layer-row.dragging { opacity: 0.45; }
+.layer-row.drop-above::before {
+  content: '';
+  position: absolute;
+  left: 4px; right: 4px; top: -2px;
+  height: 2px; background: var(--accent); border-radius: 2px;
+  pointer-events: none;
+}
+.layer-row.drop-below::after {
+  content: '';
+  position: absolute;
+  left: 4px; right: 4px; bottom: -2px;
+  height: 2px; background: var(--accent); border-radius: 2px;
+  pointer-events: none;
+}
+.layer-handle {
+  width: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--chrome-text-soft);
+  cursor: grab;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+.layer-row:hover .layer-handle { opacity: 1; }
+.layer-handle:active { cursor: grabbing; }
+.layer-vis {
+  width: 18px; height: 18px; padding: 0; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--chrome-text-soft);
+  opacity: 0.5;
+  transition: opacity 0.12s, color 0.12s;
+}
+.layer-vis.on { opacity: 1; color: var(--chrome-text); }
+.layer-vis:hover { opacity: 1; }
+.layer-del { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: none; border-radius: 3px; color: var(--chrome-text-soft); cursor: pointer; opacity: 0; transition: opacity 0.12s, color 0.12s, background 0.12s; }
+.layer-row:hover .layer-del { opacity: 1; }
+.layer-del:hover { color: var(--warn); background: rgba(166,74,58,0.12); }
+.layer-name { flex: 1; min-width: 0; box-sizing: border-box; font-family: var(--serif); font-size: 13px; background: transparent; border: none; outline: none; color: var(--chrome-text); padding-right: 22px; }
+.layer-name-display { flex: 1; min-width: 0; font-family: var(--serif); font-size: 13px; line-height: 1.8; color: var(--chrome-text); padding-right: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.layer-name-display .layer-math { font-size: 13px; }
+.layer-name-display .katex { font-size: 1em; color: var(--chrome-text); }
+.layer-name-display .katex-html { white-space: nowrap; }
+.panel-footer { padding: 12px 16px; border-top: 1px solid var(--chrome-line); display: flex; flex-direction: column; gap: 8px; }
+.hint { font-family: var(--mono); font-size: 10px; color: var(--chrome-text-soft); line-height: 1.7; letter-spacing: 0.02em; }
+input.zoom-readout {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--chrome-text); text-align: right;
+  padding: 2px 4px; background: transparent;
+  border: 1px solid transparent; border-radius: 3px;
+  width: 44px; cursor: text; outline: none;
+  box-sizing: border-box;
+}
+input.zoom-readout:hover { background: var(--chrome-bg-2); }
+input.zoom-readout:focus { border-color: var(--accent); background: var(--chrome-bg-2); }
+
+.canvas-wrap { flex: 1; position: relative; overflow: hidden; background: #0e1014; }
+.canvas-watermark {
+  position: absolute;
+  bottom: 12px;
+  right: 16px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11px;
+  color: #999;
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+  letter-spacing: 0.02em;
+}
+.canvas-view-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 4px;
+  background: var(--chrome-bg);
+  border: 1px solid var(--chrome-line-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 4px;
+  z-index: 40;
+}
+#mainCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; background: var(--paper); }
+.embed-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+.embed { position: absolute; pointer-events: auto; cursor: grab; user-select: none; border: 1px dashed transparent; padding: 4px; background: transparent; text-align: center; }
+.embed.text-embed {
+  display: block; text-align: left;
+  /* Disable browser font hinting so glyph positions scale linearly with zoom instead of
+     snapping to pixel grid at each zoom level — reduces drift between text and surrounding
+     canvas strokes. Tradeoff: very slightly softer glyph edges. */
+  text-rendering: geometricPrecision;
+}
+.embed.text-embed.editing { text-align: left; }
+.embed:hover { border-color: var(--accent); }
+.embed.selected { border: 1px solid var(--accent) !important; pointer-events: none; }
+.embed.text-embed.selected { pointer-events: auto !important; cursor: move !important; }
+.embed.editing { border: 1px solid var(--accent) !important; pointer-events: auto !important; cursor: text !important; min-width: 8px; }
+.embed.editing:focus { outline: none; }
+.embed.editing .katex { user-select: none; }
+.embed.dragging { cursor: grabbing; }
+.embed img { display: block; }
+
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(3px); }
+.modal { background: var(--chrome-bg); border: 1px solid var(--chrome-line); border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; max-height: 90vh; }
+.graph-modal { width: min(900px, 92vw); }
+.modal-head { padding: 14px 18px; border-bottom: 1px solid var(--chrome-line); display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--chrome-text-soft); }
+.modal-close { background: none; border: none; cursor: pointer; font-size: 22px; color: var(--chrome-text-soft); line-height: 1; }
+.modal-close:hover { color: var(--chrome-text); }
+.modal-body { padding: 18px; flex: 1; overflow: auto; }
+
+.modal-foot { padding: 12px 18px; border-top: 1px solid var(--chrome-line); display: flex; gap: 8px; align-items: center; }
+.modal-foot .ctrl-btn:last-child { margin-left: auto; }
+
+.graph-body { display: grid; grid-template-rows: auto auto 1fr; gap: 14px; height: min(700px, 82vh); padding: 22px; box-sizing: border-box; flex: none; }
+.graph-body .graph-preview { min-height: 0; }
+/* Side-by-side row: equation input on the left, rendered LaTeX on the right */
+.g-input-row { display: grid; grid-template-columns: auto 1fr 1fr; gap: 12px; align-items: center; margin-bottom: 0; }
+.g-label { font-family: var(--mono); font-size: 11px; color: var(--chrome-text-soft); letter-spacing: 0.04em; }
+.g-input-row input { padding: 10px 12px; border: 1px solid var(--chrome-line-strong); border-radius: 4px; background: var(--chrome-bg-2); font-family: var(--mono); font-size: 14px; color: var(--chrome-text); outline: none; }
+.g-input-row input:focus { border-color: var(--accent); }
+.g-input-row .latex-render { min-height: 36px; padding: 8px 12px; background: var(--paper); color: var(--ink); border-radius: 4px; font-size: 16px; display: flex; align-items: center; margin: 0; }
+/* Graph settings panel — compact grid of axis/range/tick controls */
+.graph-settings {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 14px 16px;
+  background: var(--chrome-bg-2);
+  border: 1px solid var(--chrome-line);
+  border-radius: 5px;
+}
+.gs-row { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.gs-row-ranges { gap: 24px; }
+.gs-row-labels { gap: 24px; }
+.gs-field { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--chrome-text-soft); letter-spacing: 0.05em; }
+.gs-label { font-family: var(--mono); font-size: 11px; color: var(--chrome-text-soft); letter-spacing: 0.05em; white-space: nowrap; }
+/* Range fields fill the row, splitting the available width 50/50, with each input
+   stretching to take the space inside its half. */
+.gs-row-ranges .gs-field { flex: 1 1 0; min-width: 0; }
+.gs-range { gap: 6px; }
+.gs-range input[type="number"] {
+  flex: 1 1 0; min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--chrome-line-strong); border-radius: 4px;
+  background: var(--chrome-bg);
+  font-family: var(--mono); font-size: 12px; color: var(--chrome-text);
+  outline: none; text-align: center;
+  -moz-appearance: textfield;
+}
+.gs-range input[type="number"]::-webkit-outer-spin-button,
+.gs-range input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.gs-range input[type="number"]:focus { border-color: var(--accent); }
+.gs-sep { color: var(--chrome-text-soft); font-size: 10px; flex: 0 0 auto; }
+/* Half-width cells: mirror the 50/50 split of the ranges row so the labels group
+   on the left below aligns with the x-domain field above. */
+.gs-half { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; }
+/* Labels group fills the left half. The y-label input expands so its RIGHT edge
+   lands at the row midpoint — i.e. directly below the right edge of the x-domain
+   field above. x-label keeps its fixed compact width. */
+.gs-labels-group { gap: 18px; }
+.gs-labels-group .gs-label-field { flex: 0 0 auto; }
+.gs-labels-group .gs-label-field:last-child { flex: 1 1 0; min-width: 0; }
+.gs-labels-group .gs-label-field:last-child input[type="text"] { flex: 1 1 0; width: auto; min-width: 0; }
+/* Actions half: push actions to the right edge of the row */
+.gs-actions-half { justify-content: flex-end; }
+/* Label fields */
+.gs-label-field { min-width: 0; }
+.gs-label-field input[type="text"] {
+  width: 120px;
+  padding: 6px 10px;
+  border: 1px solid var(--chrome-line-strong); border-radius: 4px;
+  background: var(--chrome-bg);
+  font-family: var(--mono); font-size: 12px; color: var(--chrome-text);
+  outline: none; text-align: center;
+}
+.gs-label-field input[type="text"]:focus { border-color: var(--accent); }
+/* Actions are pushed to the right on the labels row */
+.gs-row-actions { display: flex; align-items: center; gap: 14px; margin-left: auto; flex: 0 0 auto; }
+/* Action button — same family as ctrl-btn but slightly more compact */
+.gs-action {
+  padding: 5px 12px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+  background: transparent;
+  border: 1px solid var(--chrome-line-strong);
+  color: var(--chrome-text);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.gs-action:hover { background: var(--chrome-line); border-color: var(--chrome-text-soft); }
+.gs-action:active { transform: translateY(0.5px); }
+/* Toggle pill — visible on/off switch */
+.gs-toggle { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--chrome-text-soft); letter-spacing: 0.04em; cursor: pointer; user-select: none; }
+.gs-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.gs-toggle-track { position: relative; width: 26px; height: 14px; background: var(--chrome-line-strong); border-radius: 8px; transition: background 0.15s; flex: 0 0 auto; }
+.gs-toggle-thumb { position: absolute; top: 1px; left: 1px; width: 12px; height: 12px; background: var(--chrome-text-soft); border-radius: 50%; transition: transform 0.15s, background 0.15s; }
+.gs-toggle input:checked + .gs-toggle-track { background: var(--accent); }
+.gs-toggle input:checked + .gs-toggle-track .gs-toggle-thumb { transform: translateX(12px); background: #ffffff; }
+.gs-toggle-label { white-space: nowrap; }
+/* Wrap the preview in a padded container so the plot doesn't kiss the borders */
+.graph-preview-wrap { background: var(--paper); border: 1px solid var(--chrome-line); border-radius: 5px; padding: 16px; min-height: 0; height: 100%; box-sizing: border-box; }
+.graph-preview { background: transparent; position: relative; height: 100%; min-height: 0; }
+.katex-display { margin: 0.4em 0 !important; }
+/* Inside text embeds, display-math is centered on its own line. Just zero out the
+   outer margin so there's no extra space above/below. */
+.embed.text-embed .katex-display { margin: 0 !important; }
+
+/* Confirmation modal */
+.confirm-modal { width: 380px; }
+.confirm-message { font-family: var(--serif); font-size: 14px; color: var(--chrome-text); line-height: 1.5; padding: 4px 0; }
+.ctrl-btn.warn { background: var(--warn); color: #ffffff; border-color: var(--warn); }
+.ctrl-btn.warn:hover { background: #e08977; border-color: #e08977; }
+
+/* ======= HISTORY PANEL ======= */
+.history-panel {
+  border-top: 1px solid var(--chrome-line);
+  background: var(--chrome-bg-2);
+  display: flex; flex-direction: column;
+  height: 360px;
+  flex-shrink: 0;
+}
+.history-list {
+  overflow-y: auto;
+  padding: 4px 8px 8px;
+  flex: 1;
+}
+.history-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--chrome-text-soft);
+  cursor: pointer;
+  border: 1px solid transparent;
+  margin-bottom: 1px;
+}
+.history-row:hover { background: var(--chrome-line); color: var(--chrome-text); }
+.history-row.current {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: rgba(107,140,206,0.25);
+}
+.history-row.future { opacity: 0.45; font-style: italic; }
+.history-marker {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--chrome-text-soft);
+  flex-shrink: 0;
+}
+.history-row.current .history-marker { background: var(--accent); }
+.history-text { flex: 1; }
+
+/* ======= ZOOM BAR ======= */
+.zoom-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
+.zoom-bar-row { display: flex; justify-content: space-between; align-items: center; }
+.zoom-label { font-family: var(--mono); font-size: 10px; color: var(--chrome-text-soft); letter-spacing: 0.04em; }
+.zoom-range-labels { font-family: var(--mono); font-size: 9px; color: var(--chrome-text-soft); opacity: 0.7; }
+
+.zoom-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--zoom-fill, 50%), var(--chrome-line-strong) var(--zoom-fill, 50%), var(--chrome-line-strong) 100%);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px;
+  background: var(--accent);
+  border: 2px solid var(--chrome-bg);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.zoom-slider::-webkit-slider-thumb:active { cursor: grabbing; }
+.zoom-slider::-moz-range-thumb {
+  width: 14px; height: 14px;
+  background: var(--accent);
+  border: 2px solid var(--chrome-bg);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+<!-- Plotly (~3MB) and mathjs are only used by the graph modal. Defer so the app boots
+     fast and these load in parallel; the modal waits on them via ensureGraphDeps(). -->
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.32.0/plotly.min.js" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.2/lib/browser/math.min.js" crossorigin="anonymous" defer></script>
+
+
+<script>
+/* =========================================================================
+   STATE — vector-based infinite canvas
+   ========================================================================= */
+function escapeHTML(s) { return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]); }
+
+const state = {
+  tool: 'pen',
+  penColor: '#1a1a1a',
+  bgColor: '#ffffff',
+  penSize: 4,         // size when pen tool is active
+  eraserSize: 32,     // size when eraser tool is active
+  // When sizeLockedScale is non-null, stroke widths are calibrated to that scale rather
+  // than the current view scale — so they keep a constant on-screen size as you zoom.
+  sizeLockedScale: null,
+  showGrid: false,
+  view: { x: 0, y: 0, scale: 1 },
+  panning: false,
+  layers: [],
+  activeLayerId: null,
+  history: [],
+  historyIndex: -1,
+  drawing: false,
+  currentStroke: null,
+  selection: null,
+  selDrag: null,
+  clipboard: null,
+  graphs: {},          // { id: { latex, originX, originY, screenSpan, layerId, settings } }
+  editingGraphId: null, // currently editing graph id (for re-edit flow)
+  cursor: { x: -1, y: -1, over: false },  // last pointer position over canvas (screen pixels)
+};
+
+const HANDLE_SIZE = 8;
+
+// Active size depends on which tool is selected
+function activeToolSize() {
+  return state.tool === 'eraser' ? state.eraserSize : state.penSize;
+}
+function setActiveToolSize(s) {
+  if (state.tool === 'eraser') state.eraserSize = s;
+  else state.penSize = s;
+}
+
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvasWrap');
+const embedLayer = document.getElementById('embedLayer');
+
+// Offscreen canvas for strokes only — eraser uses destination-out which erases pixels;
+// drawing strokes here (separate from the paper background) ensures the eraser only removes
+// stroke pixels, not the paper color underneath.
+const strokeCanvas = document.createElement('canvas');
+const strokeCtx = strokeCanvas.getContext('2d');
+
+function resizeCanvas() {
+  const r = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = r.width * dpr;
+  canvas.height = r.height * dpr;
+  canvas.style.width = r.width + 'px';
+  canvas.style.height = r.height + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // Match offscreen stroke canvas to main canvas size (in device pixels)
+  strokeCanvas.width = canvas.width;
+  strokeCanvas.height = canvas.height;
+  strokeCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  embedLayer.style.width = r.width + 'px';
+  embedLayer.style.height = r.height + 'px';
+  render();
+}
+window.addEventListener('resize', resizeCanvas);
+
+function screenToWorld(sx, sy) { return { x: sx / state.view.scale + state.view.x, y: sy / state.view.scale + state.view.y }; }
+function worldToScreen(wx, wy) { return { x: (wx - state.view.x) * state.view.scale, y: (wy - state.view.y) * state.view.scale }; }
+function eventScreenCoords(e) { const r = wrap.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+
+/* =========================================================================
+   LAYERS
+   ========================================================================= */
+let nextLayerId = 1;
+let nextGraphId = 1;
+function makeLayer(name) {
+  const id = 'L' + (nextLayerId++);
+  return { id, name: name || 'Layer ' + id.slice(1), visible: true, strokes: [], embeds: [] };
+}
+function activeLayer() { return state.layers.find(l => l.id === state.activeLayerId); }
+
+
+function renderLayerList() {
+  const list = document.getElementById('layerList');
+  list.innerHTML = '';
+  // The list is rendered top-of-stack first (reverse of state.layers).
+  // Each row stores its layer id; drag/drop reorders state.layers accordingly.
+  [...state.layers].reverse().forEach(layer => {
+    const row = document.createElement('div');
+    row.className = 'layer-row' + (layer.id === state.activeLayerId ? ' active' : '');
+    row.dataset.layerId = layer.id;
+    row.draggable = true;
+
+    // Drag handle (visual cue, but the entire row is draggable)
+    const handle = document.createElement('span');
+    handle.className = 'layer-handle';
+    handle.innerHTML = '<svg viewBox="0 0 8 14" width="8" height="14" aria-hidden="true"><circle cx="2" cy="3" r="1" fill="currentColor"/><circle cx="6" cy="3" r="1" fill="currentColor"/><circle cx="2" cy="7" r="1" fill="currentColor"/><circle cx="6" cy="7" r="1" fill="currentColor"/><circle cx="2" cy="11" r="1" fill="currentColor"/><circle cx="6" cy="11" r="1" fill="currentColor"/></svg>';
+    handle.title = 'Drag to reorder';
+    row.appendChild(handle);
+
+    const vis = document.createElement('button');
+    vis.className = 'layer-vis' + (layer.visible ? ' on' : '');
+    vis.title = layer.visible ? 'Hide layer' : 'Show layer';
+    // Eye icon when visible; eye-with-slash when hidden. Both share the same outer
+    // size so the row layout doesn't shift when toggling.
+    const eyeOn  = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8 C 3 4.5, 5.5 3, 8 3 S 13 4.5, 14.5 8 C 13 11.5, 10.5 13, 8 13 S 3 11.5, 1.5 8 Z"/><circle cx="8" cy="8" r="2.2"/></svg>';
+    const eyeOff = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5 C 4 4, 6 3, 8 3 S 12.5 4.5, 14.5 8 C 13.8 9, 13 9.9, 12.2 10.6 M10 11.7 C 9.4 11.9, 8.7 12, 8 12 C 5.5 12, 3 10.5, 1.5 8 C 2.1 7, 2.9 6.1, 3.8 5.4"/><line x1="2" y1="2" x2="14" y2="14"/></svg>';
+    const setIcon = () => { vis.innerHTML = layer.visible ? eyeOn : eyeOff; };
+    setIcon();
+    vis.onclick = (e) => {
+      e.stopPropagation();
+      layer.visible = !layer.visible;
+      vis.classList.toggle('on', layer.visible);
+      vis.title = layer.visible ? 'Hide layer' : 'Show layer';
+      setIcon();
+      render();
+    };
+    vis.draggable = false;
+    row.appendChild(vis);
+
+    const name = document.createElement('input');
+    name.className = 'layer-name';
+    name.value = layer.name;
+    name.draggable = false;
+    name.onclick = (e) => e.stopPropagation();
+    name.onmousedown = (e) => e.stopPropagation(); // prevent drag from name
+    name.onchange = () => {
+      layer.name = name.value;
+      updateNameDisplay();
+    };
+
+    // Display span — shows rendered LaTeX for graph layers (e.g., "Graph: " + rendered math).
+    // Hidden when input is focused; visible otherwise.
+    const display = document.createElement('span');
+    display.className = 'layer-name-display';
+    display.draggable = false;
+    function updateNameDisplay() {
+      const m = layer.name.match(/^(Plot:\s*)(.+)$/);
+      if (m && window.renderMathInElement) {
+        const tex = normalizeForLatex(m[2]);
+        display.innerHTML = escapeHTML(m[1]) + '<span class="layer-math">$' + tex + '$</span>';
+        try {
+          window.renderMathInElement(display, {
+            delimiters: [{ left: '$', right: '$', display: false }],
+            throwOnError: false,
+          });
+        } catch (_) {}
+      } else {
+        display.textContent = layer.name;
+      }
+    }
+    updateNameDisplay();
+    // Single click on the name does nothing special — the row's onclick selects the layer.
+    // Double-click is what enters rename mode (matches Finder / Files-app conventions and
+    // makes selecting a layer a single quick click, not a click-into-edit-mode trap).
+    display.ondblclick = (e) => {
+      e.stopPropagation();
+      display.style.display = 'none';
+      name.style.display = '';
+      name.focus();
+      name.select();
+    };
+    name.onblur = () => {
+      // Switch back to display mode
+      layer.name = name.value;
+      updateNameDisplay();
+      display.style.display = '';
+      name.style.display = 'none';
+    };
+    name.onkeydown = (e) => {
+      if (e.key === 'Enter') { name.blur(); }
+      else if (e.key === 'Escape') { name.value = layer.name; name.blur(); }
+    };
+    // Default: show display, hide input
+    name.style.display = 'none';
+    row.appendChild(name);
+    row.appendChild(display);
+
+    // Delete button — hidden by default, fades in on row hover
+    const del = document.createElement('button');
+    del.className = 'layer-del';
+    del.title = 'Delete layer';
+    del.draggable = false;
+    del.innerHTML = '<svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>';
+    del.onclick = (e) => {
+      e.stopPropagation();
+      if (state.layers.length <= 1) return;
+      if (state.activeLayerId === layer.id) {
+        const idx = state.layers.findIndex(l => l.id === layer.id);
+        state.activeLayerId = state.layers[Math.max(0, idx - 1)].id;
+      }
+      layer.embeds.forEach(em => em.el && em.el.remove());
+      state.layers = state.layers.filter(l => l.id !== layer.id);
+      render(); renderLayerList();
+      pushHistory('Delete layer');
+    };
+    del.onmousedown = (e) => e.stopPropagation();
+    row.appendChild(del);
+
+    row.tabIndex = 0;
+    row.onclick = () => {
+      if (state.activeLayerId === layer.id) return;
+      state.activeLayerId = layer.id;
+      cancelSelection();
+      // Toggle the .active class in place rather than re-rendering the whole list — a
+      // full re-render would destroy this row's DOM element mid-click, breaking the
+      // dblclick-to-rename behavior on the name span.
+      for (const r of list.children) r.classList.toggle('active', r.dataset.layerId === layer.id);
+      row.focus();
+    };
+
+    // Drag-and-drop reordering
+    row.addEventListener('dragstart', (e) => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', layer.id);
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      list.querySelectorAll('.drop-above, .drop-below').forEach(el => {
+        el.classList.remove('drop-above', 'drop-below');
+      });
+    });
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const r = row.getBoundingClientRect();
+      const above = (e.clientY - r.top) < r.height / 2;
+      // Clear other indicators
+      list.querySelectorAll('.drop-above, .drop-below').forEach(el => {
+        if (el !== row) el.classList.remove('drop-above', 'drop-below');
+      });
+      row.classList.toggle('drop-above', above);
+      row.classList.toggle('drop-below', !above);
+    });
+    row.addEventListener('dragleave', () => {
+      row.classList.remove('drop-above', 'drop-below');
+    });
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const draggedId = e.dataTransfer.getData('text/plain');
+      const targetId = layer.id;
+      if (!draggedId || draggedId === targetId) return;
+      const r = row.getBoundingClientRect();
+      const above = (e.clientY - r.top) < r.height / 2;
+      moveLayer(draggedId, targetId, above);
+    });
+
+    list.appendChild(row);
+  });
+}
+
+// Move layer with id `srcId` to be visually `above`/below the layer with id `targetId`.
+// "Above" in the list panel = higher z-index (drawn on top) = later in state.layers.
+function moveLayer(srcId, targetId, above) {
+  const srcIdx = state.layers.findIndex(l => l.id === srcId);
+  const tgtIdx = state.layers.findIndex(l => l.id === targetId);
+  if (srcIdx < 0 || tgtIdx < 0) return;
+  const [moved] = state.layers.splice(srcIdx, 1);
+  // After removing src, target's index may have shifted by 1
+  const newTgtIdx = state.layers.findIndex(l => l.id === targetId);
+  // List is rendered reversed: top of list (above) -> end of state.layers (top of z-stack)
+  // If "above" target in the list, we want src to be AFTER target in state.layers (higher z)
+  const insertAt = above ? newTgtIdx + 1 : newTgtIdx;
+  state.layers.splice(insertAt, 0, moved);
+  renderLayerList();
+  render();
+  pushHistory('Reorder layers');
+}
+
+document.getElementById('addLayerBtn').onclick = () => {
+  const l = makeLayer();
+  state.layers.push(l);
+  state.activeLayerId = l.id;
+  renderLayerList(); render();
+  pushHistory('Add layer');
+};
+
+/* =========================================================================
+   RENDER
+   ========================================================================= */
+function render() {
+  const r = wrap.getBoundingClientRect();
+  ctx.fillStyle = state.bgColor;
+  ctx.fillRect(0, 0, r.width, r.height);
+  if (state.showGrid) drawGrid(r.width, r.height);
+
+  // Render each layer onto the offscreen stroke canvas, then composite onto the main
+  // canvas before moving to the next layer. This keeps eraser strokes (which use
+  // destination-out) constrained to the layer they're drawn on — without this loop,
+  // a single shared offscreen would let an eraser stroke on the top layer punch through
+  // strokes on the layers below.
+  const dpr = window.devicePixelRatio || 1;
+  for (const layer of state.layers) {
+    if (!layer.visible) continue;
+    if (!layer.strokes.length && !(state.currentStroke && layer.id === state.activeLayerId)
+        && !(state.selection && state.selection.lifted && state.selection.layerId === layer.id)) {
+      continue;
+    }
+    strokeCtx.clearRect(0, 0, r.width, r.height);
+    strokeCtx.save();
+    strokeCtx.scale(state.view.scale, state.view.scale);
+    strokeCtx.translate(-state.view.x, -state.view.y);
+    for (const stroke of layer.strokes) drawStroke(stroke, strokeCtx);
+    // The in-progress stroke lives on the active layer — render it inline at the right
+    // z-position so it doesn't float above layers that should be on top of it.
+    if (state.currentStroke && layer.id === state.activeLayerId) {
+      drawStroke(state.currentStroke, strokeCtx);
+    }
+    // Selection ghost (lifted strokes) — draw with this layer if it originated here, so
+    // its eraser strokes are also confined to the layer they belong to.
+    if (state.selection && state.selection.lifted && state.selection.layerId === layer.id) {
+      const sel = state.selection;
+      const cx = sel.bbox.x + sel.bbox.w / 2, cy = sel.bbox.y + sel.bbox.h / 2;
+      const rot = (sel.rotation || 0) * Math.PI / 180;
+      const sc = sel.scale || 1;
+      strokeCtx.save();
+      strokeCtx.translate(cx, cy);
+      strokeCtx.rotate(rot);
+      strokeCtx.scale(sc, sc);
+      strokeCtx.translate(-sel._origCx, -sel._origCy);
+      for (const s of sel.strokes) drawStroke(s, strokeCtx);
+      strokeCtx.restore();
+    }
+    strokeCtx.restore();
+    // Composite this layer onto the main canvas. setTransform(1,...) to draw at raw
+    // device pixels matching the offscreen canvas dimensions.
+    if (strokeCanvas.width > 0 && strokeCanvas.height > 0) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(strokeCanvas, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  drawSelectionUI();
+  drawEraserCursor();
+  positionEmbeds();
+  // Update the zoom readout unless the user is actively editing it (so their in-progress
+  // typing isn't wiped by a render triggered mid-edit).
+  const zoomEl = document.getElementById('zoomReadout');
+  if (zoomEl && document.activeElement !== zoomEl) {
+    zoomEl.value = Math.round(state.view.scale * 100) + '%';
+  }
+  syncZoomSlider();
+}
+
+function drawEraserCursor() {
+  if (state.tool !== 'eraser' || !state.cursor.over) return;
+  // Eraser stroke width on screen equals the eraser size (strokes are stored in world units
+  // as size/scale, but rendered with the scale transform — so on-screen width is size).
+  const radius = state.eraserSize / 2;
+  ctx.save();
+  // Outer dark ring
+  ctx.beginPath();
+  ctx.arc(state.cursor.x, state.cursor.y, radius, 0, Math.PI * 2);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(20,20,20,0.85)';
+  ctx.stroke();
+  // Inner light ring for contrast against dark backgrounds
+  ctx.beginPath();
+  ctx.arc(state.cursor.x, state.cursor.y, radius - 1, 0, Math.PI * 2);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+  ctx.stroke();
+  // Tiny center dot for precision
+  ctx.beginPath();
+  ctx.arc(state.cursor.x, state.cursor.y, 1, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(20,20,20,0.85)';
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawGrid(w, h) {
+  const v = state.view;
+  const wx0 = v.x, wy0 = v.y;
+  const wx1 = v.x + w / v.scale, wy1 = v.y + h / v.scale;
+  ctx.save();
+  ctx.lineWidth = 1;
+  function lines(step, alpha) {
+    ctx.strokeStyle = `rgba(40,40,30,${alpha})`;
+    ctx.beginPath();
+    const x0 = Math.floor(wx0 / step) * step, y0 = Math.floor(wy0 / step) * step;
+    for (let wx = x0; wx <= wx1; wx += step) {
+      const sx = (wx - v.x) * v.scale;
+      ctx.moveTo(sx + 0.5, 0); ctx.lineTo(sx + 0.5, h);
+    }
+    for (let wy = y0; wy <= wy1; wy += step) {
+      const sy = (wy - v.y) * v.scale;
+      ctx.moveTo(0, sy + 0.5); ctx.lineTo(w, sy + 0.5);
+    }
+    ctx.stroke();
+  }
+  if (25 * v.scale >= 6) lines(25, 0.06);
+  if (100 * v.scale >= 12) lines(100, 0.14);
+  ctx.restore();
+}
+
+function drawStroke(s, c) {
+  c = c || ctx;
+  if (s.kind === 'image') {
+    // Canvas-rendered image. The HTMLImageElement is cached on the stroke object so we
+    // don't recreate it every render frame. It loads asynchronously the first time, so
+    // we re-trigger a render once it's ready.
+    if (!s._img) {
+      s._img = new Image();
+      s._img.onload = () => render();
+      s._img.src = s.src;
+    }
+    if (s._img.complete && s._img.naturalWidth) {
+      c.save();
+      if (typeof s.opacity === 'number') c.globalAlpha = s.opacity;
+      c.drawImage(s._img, s.x, s.y, s.w, s.h);
+      c.restore();
+    }
+    return;
+  }
+  if (s.kind === 'text') {
+    c.save();
+    if (typeof s.opacity === 'number') c.globalAlpha = s.opacity;
+    c.fillStyle = s.color;
+    c.font = s.size + 'px "KaTeX_Main", "Latin Modern Roman", Georgia, serif';
+    c.textBaseline = 'alphabetic';
+    c.textAlign = s.anchor === 'middle-right' ? 'right' : 'center';
+    const m = c.measureText(s.text);
+    const ascent = m.actualBoundingBoxAscent || s.size * 0.7;
+    const descent = m.actualBoundingBoxDescent || 0;
+    let baselineY, drawX = s.x;
+    if (s.anchor === 'middle-right') {
+      // Visible vertical center of the glyph at s.y.
+      baselineY = s.y + (ascent - descent) / 2;
+    } else {
+      // 'top-center': visible top of glyph at s.y → baseline is ascent below.
+      baselineY = s.y + ascent;
+      // For negative labels, shift left by half the minus width so the digit (not the
+      // whole "-N" string) lands centered on the tick.
+      if (s.text.charAt(0) === '-') {
+        const minusW = c.measureText('-').width;
+        drawX -= minusW / 2;
+      }
+    }
+    c.fillText(s.text, drawX, baselineY);
+    c.restore();
+    return;
+  }
+  if (!s.points || !s.points.length) return;
+  c.save();
+  if (s.mode === 'eraser') c.globalCompositeOperation = 'destination-out';
+  if (typeof s.opacity === 'number') c.globalAlpha = s.opacity;
+  c.strokeStyle = s.color;
+  c.fillStyle = s.color;
+  c.lineWidth = s.width;
+  c.lineCap = 'round';
+  c.lineJoin = 'round';
+  if (s.points.length === 1) {
+    const p = s.points[0];
+    c.beginPath(); c.arc(p.x, p.y, s.width / 2, 0, Math.PI * 2); c.fill();
+  } else {
+    c.beginPath();
+    c.moveTo(s.points[0].x, s.points[0].y);
+    for (let i = 1; i < s.points.length; i++) c.lineTo(s.points[i].x, s.points[i].y);
+    c.stroke();
+  }
+  c.restore();
+}
+
+function drawSelectionUI() {
+  const sel = state.selection;
+  if (!sel) return;
+  const corners = selectionCornersScreen();
+  ctx.save();
+  ctx.strokeStyle = '#6b8cce';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(corners.nw.x, corners.nw.y);
+  ctx.lineTo(corners.ne.x, corners.ne.y);
+  ctx.lineTo(corners.se.x, corners.se.y);
+  ctx.lineTo(corners.sw.x, corners.sw.y);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Connector line from top-mid to rotate handle
+  ctx.beginPath();
+  ctx.moveTo(corners.rotate.attachX, corners.rotate.attachY);
+  ctx.lineTo(corners.rotate.x, corners.rotate.y);
+  ctx.stroke();
+
+  // Corner handles (squares)
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#6b8cce';
+  for (const k of ['nw', 'ne', 'se', 'sw']) {
+    const c = corners[k];
+    ctx.beginPath();
+    ctx.rect(c.x - HANDLE_SIZE/2, c.y - HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
+    ctx.fill(); ctx.stroke();
+  }
+  // Rotate handle (circle)
+  ctx.beginPath();
+  ctx.arc(corners.rotate.x, corners.rotate.y, HANDLE_SIZE / 2 + 1, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function selectionCornersScreen() {
+  const sel = state.selection;
+  const b = sel.bbox;
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+  const sc = sel.scale || 1;
+  const rot = (sel.rotation || 0) * Math.PI / 180;
+  const hw = (b.w / 2) * sc, hh = (b.h / 2) * sc;
+  const cos = Math.cos(rot), sin = Math.sin(rot);
+  const corners = {};
+  for (const [name, dx, dy] of [['nw',-hw,-hh],['ne',hw,-hh],['se',hw,hh],['sw',-hw,hh]]) {
+    const wx = cx + dx*cos - dy*sin;
+    const wy = cy + dx*sin + dy*cos;
+    corners[name] = worldToScreen(wx, wy);
+  }
+  // Rotate handle: top-mid in screen coords, then offset 24px in the "up" direction of the rotated box
+  const topMid = { x: (corners.nw.x + corners.ne.x) / 2, y: (corners.nw.y + corners.ne.y) / 2 };
+  const centerScreen = worldToScreen(cx, cy);
+  // "up" = direction from center to topMid, normalized
+  const dxU = topMid.x - centerScreen.x, dyU = topMid.y - centerScreen.y;
+  const len = Math.hypot(dxU, dyU) || 1;
+  const ux = dxU / len, uy = dyU / len;
+  corners.rotate = { x: topMid.x + ux * 24, y: topMid.y + uy * 24, attachX: topMid.x, attachY: topMid.y };
+  corners.center = centerScreen;
+  return corners;
+}
+
+/* =========================================================================
+   POINTER EVENTS — main canvas
+   ========================================================================= */
+canvas.addEventListener('pointerdown', (e) => {
+  const sp = eventScreenCoords(e);
+  const wp = screenToWorld(sp.x, sp.y);
+
+  if (e.button === 2 || e.button === 1) {
+    // Right-click (2) or middle-click (1) pans the canvas
+    state.panning = { startSx: sp.x, startSy: sp.y, startVx: state.view.x, startVy: state.view.y };
+    canvas.setPointerCapture(e.pointerId);
+    canvas.style.cursor = 'grabbing';
+    return;
+  }
+
+  // If a text embed is currently being edited, clicking the canvas commits the edit
+  // instead of starting a new action (draw, select, etc.). The contenteditable's blur
+  // handler will run exitTextEditMode automatically.
+  const editingEmbed = document.querySelector('.embed.editing');
+  if (editingEmbed) {
+    editingEmbed.blur();
+    return;
+  }
+
+  if (state.tool === 'select' && state.selection) {
+    const handle = hitSelectionHandle(sp);
+    if (handle === 'rotate') {
+      const cs = selectionCornersScreen();
+      const startAngle = Math.atan2(sp.y - cs.center.y, sp.x - cs.center.x);
+      state.selDrag = {
+        mode: 'rotate',
+        centerSx: cs.center.x,
+        centerSy: cs.center.y,
+        startAngle,
+        startRotation: state.selection.rotation || 0,
+      };
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
+    if (handle) {
+      const opposite = { nw: 'se', ne: 'sw', se: 'nw', sw: 'ne' }[handle];
+      const cs = selectionCornersScreen();
+      const anchor = cs[opposite];
+      const origCorner = cs[handle];
+      state.selDrag = {
+        mode: 'resize-' + handle,
+        anchorSx: anchor.x, anchorSy: anchor.y,
+        startCornerDist: Math.hypot(origCorner.x - anchor.x, origCorner.y - anchor.y),
+        startScale: state.selection.scale || 1,
+      };
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
+    if (pointInSelection(wp)) {
+      state.selDrag = { mode: 'move', startWx: wp.x, startWy: wp.y, startBx: state.selection.bbox.x, startBy: state.selection.bbox.y };
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
+    commitSelection();
+  }
+
+  if (state.tool === 'select') {
+    state.selDrag = { mode: 'creating', startWx: wp.x, startWy: wp.y };
+    state.selection = { layerId: state.activeLayerId, bbox: { x: wp.x, y: wp.y, w: 0, h: 0 }, strokes: [], embeds: [], rotation: 0, scale: 1, lifted: false };
+    canvas.setPointerCapture(e.pointerId);
+    return;
+  }
+
+  if (state.tool === 'text') {
+    // Create an inline-editable text embed at click position and enter edit mode immediately
+    placeInlineText(wp.x, wp.y);
+    return;
+  }
+
+  if (state.tool === 'pen' || state.tool === 'eraser') {
+    state.drawing = true;
+    // When size is locked, the stroke's world-width is calibrated against the scale at
+    // lock-time so its on-screen width stays constant as the user zooms.
+    const widthScale = state.sizeLockedScale != null ? state.sizeLockedScale : state.view.scale;
+    state.currentStroke = {
+      points: [{ x: wp.x, y: wp.y }],
+      color: state.penColor,
+      width: activeToolSize() / widthScale,
+      mode: state.tool === 'eraser' ? 'eraser' : 'pen',
+    };
+    canvas.setPointerCapture(e.pointerId);
+    render();
+  }
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  const sp = eventScreenCoords(e);
+  const wp = screenToWorld(sp.x, sp.y);
+
+  // Track pointer position for custom cursor rendering (eraser circle)
+  state.cursor.x = sp.x;
+  state.cursor.y = sp.y;
+  state.cursor.over = true;
+
+  if (state.panning) {
+    const p = state.panning;
+    state.view.x = p.startVx + (p.startSx - sp.x) / state.view.scale;
+    state.view.y = p.startVy + (p.startSy - sp.y) / state.view.scale;
+    render();
+    return;
+  }
+
+  if (state.drawing && state.currentStroke) {
+    state.currentStroke.points.push({ x: wp.x, y: wp.y });
+    render();
+    return;
+  }
+
+  if (state.selDrag) {
+    const sd = state.selDrag;
+    const sel = state.selection;
+    if (sd.mode === 'creating') {
+      sel.bbox.x = Math.min(sd.startWx, wp.x);
+      sel.bbox.y = Math.min(sd.startWy, wp.y);
+      sel.bbox.w = Math.abs(wp.x - sd.startWx);
+      sel.bbox.h = Math.abs(wp.y - sd.startWy);
+      render();
+    } else if (sd.mode === 'move') {
+      sel.bbox.x = sd.startBx + (wp.x - sd.startWx);
+      sel.bbox.y = sd.startBy + (wp.y - sd.startWy);
+      render();
+    } else if (sd.mode === 'rotate') {
+      const angle = Math.atan2(sp.y - sd.centerSy, sp.x - sd.centerSx);
+      const delta = (angle - sd.startAngle) * 180 / Math.PI;
+      let next = sd.startRotation + delta;
+      // Hold Shift to snap to the nearest 45° increment
+      if (e.shiftKey) next = Math.round(next / 45) * 45;
+      sel.rotation = next;
+      render();
+    } else if (sd.mode.startsWith('resize-')) {
+      // factor = how much further the pointer is from the anchor than the original corner was
+      const d1 = Math.hypot(sp.x - sd.anchorSx, sp.y - sd.anchorSy);
+      if (sd.startCornerDist > 0) {
+        const factor = Math.max(0.05, d1 / sd.startCornerDist);
+        sel.scale = sd.startScale * factor;
+      }
+      render();
+    }
+    return;
+  }
+
+  // Hover cursor — change based on what's under the pointer
+  if (state.tool === 'select' && state.selection) {
+    const handle = hitSelectionHandle(sp);
+    if (handle === 'rotate') canvas.style.cursor = 'grab';
+    else if (handle === 'nw' || handle === 'se') canvas.style.cursor = 'nwse-resize';
+    else if (handle === 'ne' || handle === 'sw') canvas.style.cursor = 'nesw-resize';
+    else if (pointInSelection(wp)) canvas.style.cursor = 'move';
+    else canvas.style.cursor = 'crosshair';
+  }
+
+  // For eraser tool, re-render so the custom circle cursor follows the pointer
+  if (state.tool === 'eraser') render();
+});
+
+canvas.addEventListener('pointerup', (e) => {
+  if (state.panning) {
+    state.panning = false;
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+    canvas.style.cursor = state.tool === 'pen' ? 'crosshair' : 'default';
+    return;
+  }
+  if (state.drawing && state.currentStroke) {
+    const layer = activeLayer();
+    if (layer) {
+      layer.strokes.push(state.currentStroke);
+      const action = state.currentStroke.mode === 'eraser' ? 'Erase' : 'Draw';
+      pushHistory(action);
+    }
+    state.currentStroke = null;
+    state.drawing = false;
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+    render();
+    return;
+  }
+  if (state.selDrag) {
+    const sd = state.selDrag;
+    state.selDrag = null;
+    if (sd.mode === 'creating') {
+      const b = state.selection.bbox;
+      if (b.w < 4 || b.h < 4) {
+        // Click without drag — revert to pen tool so the user can keep drawing
+        cancelSelection();
+        if (state.tool === 'select') setTool('pen');
+      } else {
+        liftSelection();
+        ensureSelectionOrigin();
+      }
+    } else if (sd.editOnClick) {
+      // Second click on an already-selected text embed without drag → enter edit mode.
+      const sp = eventScreenCoords(e);
+      const moved = Math.hypot(sp.x - sd.startSx, sp.y - sd.startSy);
+      if (moved < 4) {
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+        // Commit (not cancel!) the selection so any move/resize is preserved before we
+        // re-attach the embed to its layer and enter edit mode.
+        const targetEmbed = sd.editOnClick;
+        commitSelection();
+        enterTextEditMode(targetEmbed);
+        render();
+        return;
+      }
+    }
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+    render();
+    return;
+  }
+});
+
+wrap.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const sp = eventScreenCoords(e);
+  const wp0 = screenToWorld(sp.x, sp.y);
+  const factor = Math.exp(-e.deltaY * 0.0015);
+  state.view.scale = Math.max(0.01, Math.min(40, state.view.scale * factor));
+  const wp1 = screenToWorld(sp.x, sp.y);
+  state.view.x += wp0.x - wp1.x;
+  state.view.y += wp0.y - wp1.y;
+  render();
+}, { passive: false });
+
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+wrap.addEventListener('contextmenu', e => e.preventDefault());
+
+// Double-click on a graph curve → reopen the graph modal pre-filled with that graph's source
+wrap.addEventListener('dblclick', (e) => {
+  const sp = eventScreenCoords(e);
+  const wp = screenToWorld(sp.x, sp.y);
+
+  // First, check if there's a text embed under the click. The embed's own dblclick handler
+  // can be blocked when the embed has been auto-selected (pointer-events: none on .selected),
+  // so we hit-test from the canvas as a fallback. Check both selected and unselected text embeds.
+  // For selected embeds, em.x/y haven't been updated to reflect any move yet — apply the
+  // selection's bbox-vs-original-center offset to find the embed's current visual position.
+  const sel = state.selection;
+  let selDx = 0, selDy = 0;
+  if (sel) {
+    selDx = (sel.bbox.x + sel.bbox.w/2) - sel._origCx;
+    selDy = (sel.bbox.y + sel.bbox.h/2) - sel._origCy;
+  }
+  const allEmbeds = [
+    ...state.layers.flatMap(l => l.embeds).map(em => ({ em, dx: 0, dy: 0 })),
+    ...(sel ? sel.embeds.map(em => ({ em, dx: selDx, dy: selDy })) : []),
+  ];
+  for (const { em, dx, dy } of allEmbeds) {
+    if (em.type !== 'text') continue;
+    const x = em.x + dx, y = em.y + dy;
+    if (wp.x >= x && wp.x <= x + em.w && wp.y >= y && wp.y <= y + em.h) {
+      // Commit any selection so the embed's current (possibly moved) position is preserved
+      // and it re-attaches to its layer with normal pointer-events.
+      if (state.selection) commitSelection();
+      enterTextEditMode(em);
+      return;
+    }
+  }
+
+  // Otherwise: graph-curve hit test (re-edit the function)
+  const hitDist = 8 / state.view.scale;
+  let best = null, bestDist = Infinity;
+  for (const layer of state.layers) {
+    if (!layer.visible) continue;
+    for (const s of layer.strokes) {
+      if (!s.graphId) continue;
+      if (s.kind === 'text' || !s.points) continue;
+      for (let i = 0; i < s.points.length - 1; i++) {
+        const a = s.points[i], b = s.points[i+1];
+        const d = pointToSegmentDist(wp.x, wp.y, a.x, a.y, b.x, b.y);
+        if (d < bestDist) { bestDist = d; best = s; }
+      }
+    }
+  }
+  if (best && bestDist < hitDist) {
+    // Only open re-edit if this groupId is in state.graphs (i.e., it's a function plot, not blank axes)
+    if (state.graphs && state.graphs[best.graphId]) {
+      openGraphModalForGraphId(best.graphId);
+    }
+  }
+});
+
+function pointToSegmentDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const len2 = dx*dx + dy*dy;
+  if (len2 === 0) return Math.hypot(px - ax, py - ay);
+  let t = ((px - ax) * dx + (py - ay) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  const cx = ax + t * dx, cy = ay + t * dy;
+  return Math.hypot(px - cx, py - cy);
+}
+
+canvas.addEventListener('pointerleave', () => {
+  state.cursor.over = false;
+  if (state.tool === 'eraser') render();
+});
+canvas.addEventListener('pointerenter', (e) => {
+  const sp = eventScreenCoords(e);
+  state.cursor.x = sp.x;
+  state.cursor.y = sp.y;
+  state.cursor.over = true;
+  if (state.tool === 'eraser') render();
+});
+
+/* =========================================================================
+   SELECTION OPS
+   ========================================================================= */
+function strokeBounds(s) {
+  // Image strokes carry their own bbox directly.
+  if (s.kind === 'image') {
+    return { x: s.x, y: s.y, w: s.w, h: s.h };
+  }
+  // Text-kind strokes have a single (x, y) position and a size — approximate the bounds
+  // as a small box around the anchor so they get picked by box-selection normally.
+  if (s.kind === 'text') {
+    const w = s.size * Math.max(1, s.text.length) * 0.6;
+    const h = s.size;
+    const xLeft = s.anchor === 'middle-right' ? s.x - w : s.x - w/2;
+    const yTop = s.anchor === 'middle-right' ? s.y - h/2 : s.y;
+    return { x: xLeft, y: yTop, w, h };
+  }
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of s.points) {
+    if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y;
+  }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+function rectsIntersect(a, b) {
+  return !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y);
+}
+
+function liftSelection() {
+  const sel = state.selection;
+  const layer = state.layers.find(l => l.id === sel.layerId) || activeLayer();
+  if (!layer) return;
+  sel.layerId = layer.id;
+  const b = sel.bbox;
+  const initialPicked = [];
+  const remaining = [];
+  for (const s of layer.strokes) {
+    const sb = strokeBounds(s);
+    if (rectsIntersect(b, sb)) initialPicked.push(s);
+    else remaining.push(s);
+  }
+  // Pick embeds whose center falls inside the drag rect
+  const remEmbeds = [];
+  const pickedEmbeds = [];
+  for (const em of layer.embeds) {
+    const cx = em.x + em.w/2, cy = em.y + em.h/2;
+    if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) {
+      pickedEmbeds.push(em);
+      em.el && em.el.classList.add('selected');
+    } else remEmbeds.push(em);
+  }
+
+  // Graph grouping: any graphId touched by a picked stroke pulls in ALL strokes with
+  // that graphId, even if they weren't directly under the drag rect. This keeps the
+  // curve, axes, and tick-label numbers (which are tagged text strokes) as a single unit.
+  const allGraphIds = new Set(initialPicked.map(s => s.graphId).filter(Boolean));
+  if (allGraphIds.size) {
+    const stillRemainingStrokes = [];
+    for (const s of remaining) {
+      if (s.graphId && allGraphIds.has(s.graphId)) initialPicked.push(s);
+      else stillRemainingStrokes.push(s);
+    }
+    remaining.length = 0;
+    remaining.push(...stillRemainingStrokes);
+  }
+  layer.embeds = remEmbeds;
+
+  // Recompute bbox to tightly encompass all picked strokes AND embeds, so the visible
+  // selection rectangle hugs the actual content rather than the user's drag area.
+  if (initialPicked.length || pickedEmbeds.length) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const s of initialPicked) {
+      const sb = strokeBounds(s);
+      if (sb.x < minX) minX = sb.x;
+      if (sb.y < minY) minY = sb.y;
+      if (sb.x + sb.w > maxX) maxX = sb.x + sb.w;
+      if (sb.y + sb.h > maxY) maxY = sb.y + sb.h;
+    }
+    for (const em of pickedEmbeds) {
+      if (em.x < minX) minX = em.x;
+      if (em.y < minY) minY = em.y;
+      if (em.x + em.w > maxX) maxX = em.x + em.w;
+      if (em.y + em.h > maxY) maxY = em.y + em.h;
+    }
+    sel.bbox = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  }
+
+  for (const s of initialPicked) sel.strokes.push(s);
+  for (const em of pickedEmbeds) sel.embeds.push(em);
+  layer.strokes = remaining;
+  sel.lifted = true;
+  sel._origCx = sel.bbox.x + sel.bbox.w/2;
+  sel._origCy = sel.bbox.y + sel.bbox.h/2;
+}
+
+function pointInSelection(wp) {
+  const sel = state.selection;
+  if (!sel) return false;
+  const b = sel.bbox;
+  const cx = b.x + b.w/2, cy = b.y + b.h/2;
+  const sc = sel.scale || 1;
+  return wp.x >= cx - b.w*sc/2 && wp.x <= cx + b.w*sc/2 && wp.y >= cy - b.h*sc/2 && wp.y <= cy + b.h*sc/2;
+}
+
+function hitSelectionHandle(sp) {
+  if (!state.selection) return null;
+  const c = selectionCornersScreen();
+  // Check rotate handle first (it floats above and shouldn't be eclipsed by NW/NE corners)
+  const rdx = sp.x - c.rotate.x, rdy = sp.y - c.rotate.y;
+  if (Math.hypot(rdx, rdy) <= HANDLE_SIZE) return 'rotate';
+  for (const k of ['nw','ne','se','sw']) {
+    const dx = sp.x - c[k].x, dy = sp.y - c[k].y;
+    if (Math.abs(dx) <= HANDLE_SIZE && Math.abs(dy) <= HANDLE_SIZE) return k;
+  }
+  return null;
+}
+
+function commitSelection() {
+  const sel = state.selection;
+  if (!sel) return;
+  const layer = state.layers.find(l => l.id === sel.layerId) || activeLayer();
+  if (!layer) { cancelSelection(); return; }
+  const b = sel.bbox;
+  const cx = b.x + b.w/2, cy = b.y + b.h/2;
+  const rot = (sel.rotation || 0) * Math.PI / 180;
+  const sc = sel.scale || 1;
+  const cos = Math.cos(rot), sin = Math.sin(rot);
+  const origCx = sel._origCx, origCy = sel._origCy;
+
+  for (const s of sel.strokes) {
+    if (s.kind === 'image') {
+      // Images are positioned by top-left + width/height. Transform the center, scale
+      // both dimensions, then re-derive the top-left so the image is still anchored from
+      // the same conceptual point. Rotation is stored on the stroke for future use (not
+      // currently rendered, since canvas-drawn images aren't rotated yet).
+      const icx = s.x + s.w/2, icy = s.y + s.h/2;
+      const dx = icx - origCx, dy = icy - origCy;
+      const nx = (dx * cos - dy * sin) * sc;
+      const ny = (dx * sin + dy * cos) * sc;
+      s.w *= sc; s.h *= sc;
+      s.x = (nx + cx) - s.w/2;
+      s.y = (ny + cy) - s.h/2;
+      layer.strokes.push(s);
+      continue;
+    }
+    if (s.kind === 'text') {
+      // Text strokes have a single anchor point and a size; transform the anchor and scale the size.
+      const dx = s.x - origCx, dy = s.y - origCy;
+      const nx = (dx * cos - dy * sin) * sc;
+      const ny = (dx * sin + dy * cos) * sc;
+      s.x = nx + cx;
+      s.y = ny + cy;
+      s.size *= sc;
+      layer.strokes.push(s);
+      continue;
+    }
+    s.points = s.points.map(p => {
+      const dx = p.x - origCx, dy = p.y - origCy;
+      const nx = (dx * cos - dy * sin) * sc;
+      const ny = (dx * sin + dy * cos) * sc;
+      return { x: nx + cx, y: ny + cy };
+    });
+    s.width = s.width * sc;
+    layer.strokes.push(s);
+  }
+  for (const em of sel.embeds) {
+    em.el && em.el.classList.remove('selected');
+    const ecx = em.x + em.w/2, ecy = em.y + em.h/2;
+    const dx = ecx - origCx, dy = ecy - origCy;
+    const nx = (dx * cos - dy * sin) * sc;
+    const ny = (dx * sin + dy * cos) * sc;
+    const newCx = nx + cx, newCy = ny + cy;
+    em.w *= sc; em.h *= sc;
+    em.x = newCx - em.w/2; em.y = newCy - em.h/2;
+    em.rotation = (em.rotation || 0) + (sel.rotation || 0);
+    // For text embeds, also scale the font size so the text grows with the box
+    if (em.type === 'text' && em.data && typeof em.data.size === 'number') {
+      em.data.size *= sc;
+    }
+    layer.embeds.push(em);
+  }
+  // Detect if anything actually changed (movement, rotation, scale)
+  const moved = (sel.bbox.x + sel.bbox.w/2) !== sel._origCx || (sel.bbox.y + sel.bbox.h/2) !== sel._origCy;
+  const transformed = (sel.rotation || 0) !== 0 || (sel.scale || 1) !== 1;
+  state.selection = null;
+  if (moved || transformed) pushHistory('Move/Resize');
+  render();
+}
+
+function cancelSelection() {
+  const sel = state.selection;
+  if (sel && sel.lifted) {
+    const layer = state.layers.find(l => l.id === sel.layerId);
+    if (layer) {
+      for (const s of sel.strokes) layer.strokes.push(s);
+      for (const em of sel.embeds) { em.el && em.el.classList.remove('selected'); layer.embeds.push(em); }
+    }
+  }
+  state.selection = null;
+  render();
+}
+
+function deleteSelection() {
+  if (!state.selection) return;
+  for (const em of state.selection.embeds) em.el && em.el.remove();
+  state.selection = null;
+  pushHistory('Delete');
+  render();
+}
+
+function copySelection() {
+  if (!state.selection) return;
+  const sel = state.selection;
+  state.clipboard = {
+    bbox: { ...sel.bbox },
+    strokes: sel.strokes.map(s => s.kind === 'text' ? { ...s } : ({ ...s, points: s.points.map(p => ({ ...p })) })),
+    embedsData: sel.embeds.map(em => ({ type: em.type, x: em.x, y: em.y, w: em.w, h: em.h, rotation: em.rotation || 0, data: em.data })),
+    rotation: sel.rotation || 0,
+    scale: sel.scale || 1,
+  };
+}
+
+function pasteClipboard() {
+  if (!state.clipboard) return;
+  if (state.selection) commitSelection();
+  const cb = state.clipboard;
+  const r = wrap.getBoundingClientRect();
+  const center = screenToWorld(r.width/2, r.height/2);
+  const origCx = cb.bbox.x + cb.bbox.w/2;
+  const origCy = cb.bbox.y + cb.bbox.h/2;
+  const dx = center.x - origCx, dy = center.y - origCy;
+  const layer = activeLayer(); if (!layer) return;
+
+  const newSel = {
+    layerId: layer.id,
+    bbox: { x: cb.bbox.x + dx, y: cb.bbox.y + dy, w: cb.bbox.w, h: cb.bbox.h },
+    strokes: cb.strokes.map(s => {
+      if (s.kind === 'text') return { ...s, x: s.x + dx, y: s.y + dy };
+      return { ...s, points: s.points.map(p => ({ x: p.x + dx, y: p.y + dy })) };
+    }),
+    embeds: [],
+    rotation: cb.rotation,
+    scale: cb.scale,
+    lifted: true,
+  };
+  for (const ed of cb.embedsData) {
+    const em = createEmbedFromData(ed.type, ed.data, ed.x + dx, ed.y + dy, ed.w, ed.h);
+    em.rotation = ed.rotation;
+    em.el.classList.add('selected');
+    newSel.embeds.push(em);
+  }
+  newSel._origCx = newSel.bbox.x + newSel.bbox.w/2;
+  newSel._origCy = newSel.bbox.y + newSel.bbox.h/2;
+  state.selection = newSel;
+  setTool('select');
+  ensureSelectionOrigin();
+  render();
+  pushHistory('Paste');
+}
+
+// Make sure the selection has its origin (centre) recorded — used by resize math.
+function ensureSelectionOrigin() {
+  const sel = state.selection; if (!sel) return;
+  if (sel._origCx === undefined) {
+    sel._origCx = sel.bbox.x + sel.bbox.w/2;
+    sel._origCy = sel.bbox.y + sel.bbox.h/2;
+  }
+}
+
+/* =========================================================================
+   EMBEDS
+   ========================================================================= */
+let nextEmbedId = 1;
+function createEmbedFromData(type, data, x, y, w, h) {
+  const el = document.createElement('div');
+  el.className = 'embed' + (type === 'text' ? ' text-embed' : '');
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
+  if (type === 'text') {
+    el.style.fontFamily = "'KaTeX_Main', 'Latin Modern Roman', 'Computer Modern', 'CMU Serif', Georgia, serif";
+    el.style.fontSize = data.size + 'px';
+    el.style.color = data.color;
+    el.style.lineHeight = '1.3';
+    // Let the box hug the text content — width fits content, no fixed height
+    el.style.whiteSpace = 'pre-wrap';
+    el.innerHTML = escapeHTML(data.text).replace(/\n/g, '<br>');
+    if (window.renderMathInElement) {
+      try {
+        window.renderMathInElement(el, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '\\[', right: '\\]', display: true },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '$',  right: '$',  display: false },
+          ],
+          throwOnError: false,
+        });
+      } catch (_) {}
+    }
+  }
+  embedLayer.appendChild(el);
+  const em = { id: 'E' + (nextEmbedId++), type, data, x, y, w, h, el, rotation: 0 };
+  el.dataset.embedId = em.id;
+
+  // For text embeds, measure the actual rendered size and fit the bounding box to content,
+  // re-centered around the original (x,y) center. This makes the dashed box hug the text
+  // tightly so it scales visibly with zoom (the way graphs do).
+  if (type === 'text') {
+    // Force layout at natural size with no wrapping so we get the full content width.
+    const prevTransform = el.style.transform;
+    const prevLeft = el.style.left, prevTop = el.style.top;
+    el.style.transform = 'none';
+    el.style.left = '0px'; el.style.top = '0px';
+    el.style.width = 'auto';
+    el.style.height = 'auto';
+    el.style.whiteSpace = 'nowrap';     // prevent wrapping while measuring
+    el.style.display = 'inline-block';  // let it shrink-wrap to content
+    // Force layout
+    void el.offsetWidth;
+    const rect = el.getBoundingClientRect();
+    const naturalW = Math.max(rect.width, 20);
+    const naturalH = Math.max(rect.height, 20);
+    // Restore positioning props; updateEmbedTransform will set transform on next render
+    el.style.transform = prevTransform;
+    el.style.left = prevLeft; el.style.top = prevTop;
+    el.style.display = 'block';
+    el.style.whiteSpace = 'pre-wrap';
+    el.style.width = naturalW + 'px';
+    el.style.height = naturalH + 'px';
+    // Update embed world dimensions and recenter on the original placement center
+    const cx = em.x + em.w/2, cy = em.y + em.h/2;
+    em.w = naturalW;
+    em.h = naturalH;
+    em.x = cx - em.w/2;
+    em.y = cy - em.h/2;
+  }
+
+  attachEmbedDrag(em);
+  return em;
+}
+
+function attachEmbedDrag(em) {
+  em.el.addEventListener('pointerdown', (e) => {
+    // If this embed is currently being edited inline, let the contenteditable handle the click
+    if (em.el.classList.contains('editing')) return;
+    // If a DIFFERENT embed is being edited, commit it first (the blur listener fires
+    // exitTextEditMode). Don't proceed to drag this embed — let the user click again to act.
+    const otherEditing = document.querySelector('.embed.editing');
+    if (otherEditing) {
+      e.stopPropagation();
+      otherEditing.blur();
+      return;
+    }
+    e.stopPropagation();
+    // Special case: text tool + text embed → enter edit mode instead of selecting for transform.
+    // The tool stays as 'text' while editing; exitTextEditMode switches to pen on commit, so
+    // the next click after editing doesn't trigger another text placement.
+    if (state.tool === 'text' && em.type === 'text') {
+      if (state.selection) cancelSelection();
+      enterTextEditMode(em);
+      return;
+    }
+    // If this embed is already part of the current selection, set up a move-drag against
+    // that selection (don't re-lift, which would fail because the embed is no longer in any layer).
+    // For text embeds: if the second click doesn't drag, treat it as a request to enter edit mode
+    // (more reliable than relying on a precise double-click with pointer capture).
+    if (state.selection && state.selection.embeds.includes(em)) {
+      const sp = eventScreenCoords(e);
+      const wp = screenToWorld(sp.x, sp.y);
+      state.selDrag = {
+        mode: 'move',
+        startWx: wp.x, startWy: wp.y,
+        startBx: state.selection.bbox.x, startBy: state.selection.bbox.y,
+        startSx: sp.x, startSy: sp.y,
+        editOnClick: em.type === 'text' ? em : null,
+      };
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
+    // Clicking an embed (in any tool except text-on-text) auto-switches to select mode and lifts it as a selection,
+    // so rotate/resize handles appear immediately and the user can drag to move.
+    const layer = state.layers.find(l => l.embeds.includes(em));
+    if (!layer) return;
+    if (state.tool !== 'select') setTool('select');
+    cancelSelection();
+    const sel = {
+      layerId: layer.id,
+      bbox: { x: em.x, y: em.y, w: em.w, h: em.h },
+      strokes: [], embeds: [em],
+      rotation: 0, scale: 1, lifted: true,
+    };
+    sel._origCx = em.x + em.w/2; sel._origCy = em.y + em.h/2;
+    layer.embeds = layer.embeds.filter(e => e !== em);
+    em.el.classList.add('selected');
+    state.selection = sel;
+    const sp = eventScreenCoords(e);
+    const wp = screenToWorld(sp.x, sp.y);
+    state.selDrag = { mode: 'move', startWx: wp.x, startWy: wp.y, startBx: sel.bbox.x, startBy: sel.bbox.y };
+    canvas.setPointerCapture(e.pointerId);
+    ensureSelectionOrigin(); render();
+  });
+  em.el.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    if (em.type === 'text') {
+      if (state.selection) cancelSelection();
+      enterTextEditMode(em);
+    }
+  });
+}
+
+/* =========================================================================
+   INLINE TEXT EDITING
+   ========================================================================= */
+function placeInlineText(wx, wy) {
+  const layer = activeLayer(); if (!layer) return;
+  const data = {
+    text: '',
+    size: 28 / state.view.scale,  // world-units font; appears at standard on-screen size
+    color: '#1a1a1a',
+  };
+  // Create with placeholder dimensions; we'll measure after content exists
+  const placeholderW = 100 / state.view.scale;
+  const placeholderH = 30 / state.view.scale;
+  const em = createEmbedFromData('text', data, wx - placeholderW/2, wy - placeholderH/2, placeholderW, placeholderH);
+  layer.embeds.push(em);
+  render();
+  // Immediately enter edit mode. The tool stays as 'text' until the user commits the edit
+  // (clicks outside, hits Escape, or Cmd+Enter); exitTextEditMode then switches to pen so
+  // the next click doesn't place another text box.
+  enterTextEditMode(em, /*isNew=*/ true);
+}
+
+// Place an image from a File or Blob at the given world coords. The natural image
+// dimensions are used (scaled into world units), with a sensible cap so massive photos
+// don't fill the whole canvas. The image is stored as a `kind: 'image'` stroke on its
+// own dedicated layer — drawn into the canvas via the per-layer offscreen render so it
+// behaves correctly with layer order, visibility, and the eraser.
+function placeImageFromBlob(blob, wx, wy) {
+  if (!blob || !blob.type || !blob.type.startsWith('image/')) return;
+  const previousActiveLayerId = state.activeLayerId;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataURL = reader.result;
+    const probe = new Image();
+    probe.onload = () => {
+      const naturalW = probe.naturalWidth || 200;
+      const naturalH = probe.naturalHeight || 200;
+      const r = wrap.getBoundingClientRect();
+      const maxWorldW = (r.width * 0.6) / state.view.scale;
+      const maxWorldH = (r.height * 0.6) / state.view.scale;
+      let worldW = naturalW / state.view.scale;
+      let worldH = naturalH / state.view.scale;
+      const scale = Math.min(1, maxWorldW / worldW, maxWorldH / worldH);
+      worldW *= scale;
+      worldH *= scale;
+      const baseName = (blob.name || 'Image').replace(/\.[^.]+$/, '');
+      const labelTrunc = baseName.length > 32 ? baseName.slice(0, 32) + '…' : baseName;
+      const imageLayer = makeLayer('Image: ' + labelTrunc);
+      state.layers.unshift(imageLayer);
+      imageLayer.strokes.push({
+        kind: 'image',
+        x: wx - worldW/2,
+        y: wy - worldH/2,
+        w: worldW, h: worldH,
+        src: dataURL,
+      });
+      state.activeLayerId = previousActiveLayerId;
+      renderLayerList();
+      render();
+      pushHistory('Add image');
+    };
+    probe.src = dataURL;
+  };
+  reader.readAsDataURL(blob);
+}
+
+function enterTextEditMode(em, isNew) {
+  if (em._editing) return;
+  em._editing = true;
+  em._editStartText = em.data.text || '';  // capture for change-detection on exit
+  // Switch to text tool universally on entering edit mode — the toolbar reflects what
+  // the user is doing (typing), and exitTextEditMode switches back to pen on commit.
+  if (state.tool !== 'text') setTool('text');
+  em.el.classList.add('editing');
+  // Show raw source text (with no LaTeX rendering) so the user can edit it
+  em.el.contentEditable = 'true';
+  em.el.spellcheck = false;
+  em.el.style.whiteSpace = 'pre-wrap';
+  em.el.style.outline = 'none';
+  em.el.style.cursor = 'text';
+  // CRITICAL: don't seed contenteditable with raw \n characters — Chromium's contenteditable
+  // models lines via <br>/<div>, NOT \n in text nodes. If we put \n chars in the text node,
+  // then the user inserts a new line, Chromium wraps the new content in a <div> while leaving
+  // the original \n in the text node — and readRawSourceFromEl ends up counting BOTH (the \n
+  // AND the implicit line from the <div>), producing one extra phantom newline.
+  // Convert each \n to a <br> tag up front so the DOM uses one consistent model.
+  em.el.innerHTML = escapeHTML(em.data.text || '').replace(/\n/g, '<br>');
+  // Resize the bounding box to fit the (potentially wider) raw source — switching from
+  // rendered LaTeX to source can expand the text width.
+  fitTextEmbedToContent(em);
+  render();
+  // Defer focus and caret placement until after the current click event cycle finishes,
+  // otherwise the pointerup that follows pointerdown can steal focus back.
+  setTimeout(() => {
+    em.el.focus();
+    const sel = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(em.el);
+    range.collapse(false);
+    sel.removeAllRanges(); sel.addRange(range);
+  }, 0);
+
+  // No live LaTeX rendering — the user sees their raw source while editing and only gets
+  // the rendered math when they exit the textbox (blur, Escape, or Cmd/Ctrl+Enter).
+  const onInput = () => {
+    em.data.text = readRawSourceFromEl(em.el);
+    fitTextEmbedToContent(em);
+    render();
+  };
+  const onKeydown = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      em.el.blur();
+    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      // Cmd/Ctrl+Enter commits
+      e.preventDefault();
+      em.el.blur();
+    } else if (e.key === 'Enter') {
+      // Plain Enter inserts a real \n character at the caret. Using execCommand('insertText')
+      // delegates to the browser's text insertion, which correctly handles the trailing-newline
+      // visibility quirk (a bare \n at end of a text node doesn't render until something follows).
+      e.preventDefault();
+      document.execCommand('insertText', false, '\n');
+      em.data.text = readRawSourceFromEl(em.el);
+      fitTextEmbedToContent(em);
+      render();
+    }
+    e.stopPropagation();
+  };
+  const onBlur = () => {
+    em.el.removeEventListener('input', onInput);
+    em.el.removeEventListener('keydown', onKeydown);
+    em.el.removeEventListener('blur', onBlur);
+    exitTextEditMode(em, isNew);
+  };
+  em.el.addEventListener('input', onInput);
+  em.el.addEventListener('keydown', onKeydown);
+  em.el.addEventListener('blur', onBlur);
+}
+
+// Reconstruct raw source text from an editable element. Math spans (rendered LaTeX)
+// keep their original delimited source in data-math-source — use that instead of the
+// visible rendered text, so we don't lose the user's actual input.
+function readRawSourceFromEl(root) {
+  // Walk children; flatten DOM into raw source text.
+  //
+  // contenteditable in Chromium models lines as:
+  //   "line1"  (loose text node, the first line)
+  //   <div>line2</div>  (subsequent lines wrapped in a div)
+  //   <div><br></div>   (an "empty" line — div with a sole <br> as a height marker)
+  //
+  // So each <div> or <p> = one logical line. We emit '\n' before the div's content
+  // (unless we're at the very start), then walk the div's contents WITHOUT treating
+  // its <br> children as additional newlines — they're just placeholders that make
+  // empty divs visible.
+  //
+  // <br> tags OUTSIDE a div context still produce a real newline (some browsers use
+  // <br> for shift-enter or for soft breaks).
+  let out = '';
+  const walkInline = (node) => {
+    for (const child of node.childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        out += child.textContent;
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        if (child.dataset && child.dataset.mathSource) {
+          out += child.dataset.mathSource;
+        } else if (child.tagName === 'BR') {
+          out += '\n';
+        } else {
+          walkInline(child);
+        }
+      }
+    }
+  };
+  const walkRoot = (node) => {
+    let isFirst = true;
+    for (const child of node.childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        out += child.textContent;
+        isFirst = false;
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        if (child.dataset && child.dataset.mathSource) {
+          out += child.dataset.mathSource;
+          isFirst = false;
+        } else if (child.tagName === 'BR') {
+          out += '\n';
+          isFirst = false;
+        } else if (child.tagName === 'DIV' || child.tagName === 'P') {
+          // Block element = one logical line. Emit \n before its contents (unless we're
+          // still at the start of the root), then walk inline-style: a sole <br> inside
+          // it is just a height marker and contributes NO additional newline.
+          if (!isFirst) out += '\n';
+          // Check if the only meaningful child is a single <br> (empty-line marker)
+          const significant = Array.from(child.childNodes).filter(n =>
+            !(n.nodeType === Node.TEXT_NODE && n.textContent === '') &&
+            !(n.nodeType === Node.ELEMENT_NODE && n.tagName === 'BR' && child.childNodes.length === 1)
+          );
+          if (significant.length === 0 && child.querySelector('br')) {
+            // empty line, the \n we just emitted is enough
+          } else {
+            walkInline(child);
+          }
+          isFirst = false;
+        } else {
+          walkInline(child);
+          isFirst = false;
+        }
+      }
+    }
+  };
+  walkRoot(root);
+  return out;
+}
+
+function exitTextEditMode(em, wasNew) {
+  em._editing = false;
+  em.el.classList.remove('editing');
+  em.el.contentEditable = 'false';
+  em.el.style.cursor = 'grab';
+  // Snapshot the current raw source from the DOM (reading math spans' data-math-source).
+  // This is more reliable than em.data.text which might be stale if a live-render happened
+  // between the last input event and blur.
+  em.data.text = readRawSourceFromEl(em.el);
+  const txt = (em.data.text || '').trim();
+  // If empty, delete the embed
+  if (!txt) {
+    const layer = state.layers.find(l => l.embeds.includes(em));
+    if (layer) layer.embeds = layer.embeds.filter(x => x !== em);
+    em.el.remove();
+    render();
+    setTool('pen');
+    return;
+  }
+  // Final render: full LaTeX rendering using renderMathInElement.
+  //
+  // Display-math delimiters (\[...\], $$...$$) render as block elements, which means the math
+  // is ALWAYS on its own line — its leading edge naturally absorbs one preceding newline.
+  // To get symmetric behavior on the trailing edge (so 1 trailing \n is also "absorbed"),
+  // we strip ONE \n immediately after each display-math closer. We do NOT strip the leading
+  // \n — the block's intrinsic line break already handles that. Result: each user-typed \n
+  // adjacent to display math is invisible (absorbed), and additional \n produce visible
+  // blank lines symmetrically above and below.
+  let rawText = em.data.text;
+  rawText = rawText.replace(/(\\\]|\$\$)\n/g, '$1');
+  em.el.innerHTML = escapeHTML(rawText).replace(/\n/g, '<br>');
+  if (window.renderMathInElement) {
+    try {
+      window.renderMathInElement(em.el, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '\\[', right: '\\]', display: true },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '$',  right: '$',  display: false },
+        ],
+        throwOnError: false,
+      });
+    } catch (_) {}
+  }
+  fitTextEmbedToContent(em);
+  render();
+  // Only push history if the text actually changed (or it's a new embed being added).
+  // Re-opening an embed and immediately closing without changes shouldn't pollute history.
+  const changed = (em.data.text !== em._editStartText);
+  if (wasNew || changed) {
+    pushHistory(wasNew ? 'Add text' : 'Edit text');
+  }
+  em._editStartText = undefined;
+  // After exiting a text edit (whether the user committed changes or not), default to the
+  // pen tool so the next click on the canvas isn't interpreted as another text placement.
+  setTool('pen');
+}
+
+// Re-measure the embed's natural rendered size and update em.w/em.h, recentering on its current center.
+// Multi-line content (with \n) is honored via white-space: pre during measurement, so the bbox
+// reflects both width of the widest line and total height across all lines.
+function fitTextEmbedToContent(em) {
+  const prevTransform = em.el.style.transform;
+  const prevLeft = em.el.style.left, prevTop = em.el.style.top;
+  const prevWidth = em.el.style.width, prevHeight = em.el.style.height;
+  const prevWhitespace = em.el.style.whiteSpace;
+  em.el.style.transform = 'none';
+  em.el.style.left = '0px'; em.el.style.top = '0px';
+  em.el.style.width = 'auto'; em.el.style.height = 'auto';
+  // `pre` (not `nowrap`) so \n chars are respected and the height reflects multi-line content.
+  em.el.style.whiteSpace = 'pre';
+  em.el.style.display = 'inline-block';
+  void em.el.offsetWidth;
+  const rect = em.el.getBoundingClientRect();
+  // Convert measured screen-pixel size to world units. Small buffer prevents edge re-wrapping.
+  const naturalW = (Math.max(rect.width, 20) + 2) / state.view.scale;
+  const naturalH = (Math.max(rect.height, 20) + 2) / state.view.scale;
+  em.el.style.transform = prevTransform;
+  em.el.style.left = prevLeft; em.el.style.top = prevTop;
+  em.el.style.display = '';  // clear inline display so CSS class (flex for text-embed) wins
+  em.el.style.whiteSpace = prevWhitespace || 'pre-wrap';
+  em.el.style.width = prevWidth; em.el.style.height = prevHeight;
+  // Recenter on the current center
+  const cx = em.x + em.w/2, cy = em.y + em.h/2;
+  em.w = naturalW;
+  em.h = naturalH;
+  em.x = cx - em.w/2;
+  em.y = cy - em.h/2;
+  if (state.selection && state.selection.embeds.includes(em)) {
+    state.selection.bbox.w = naturalW;
+    state.selection.bbox.h = naturalH;
+  }
+}
+
+function positionEmbeds() {
+  for (const layer of state.layers) {
+    for (const em of layer.embeds) updateEmbedTransform(em, false);
+  }
+  if (state.selection) {
+    for (const em of state.selection.embeds) updateEmbedTransform(em, true);
+  }
+}
+
+function updateEmbedTransform(em, inSel) {
+  const v = state.view;
+  if (inSel) {
+    const sel = state.selection;
+    const sc = sel.scale || 1;
+    const rotSel = (sel.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rotSel), sin = Math.sin(rotSel);
+    const ecx = em.x + em.w/2, ecy = em.y + em.h/2;
+    const dx = ecx - sel._origCx, dy = ecy - sel._origCy;
+    const nx = (dx * cos - dy * sin) * sc;
+    const ny = (dx * sin + dy * cos) * sc;
+    const cx = sel.bbox.x + sel.bbox.w/2, cy = sel.bbox.y + sel.bbox.h/2;
+    const newCx = nx + cx, newCy = ny + cy;
+    const totalRot = (em.rotation || 0) + (sel.rotation || 0);
+    const finalScale = v.scale * sc;
+    const pxW = em.w * finalScale;
+    const pxH = em.h * finalScale;
+    const centerScreen = worldToScreen(newCx, newCy);
+    em.el.style.transformOrigin = '50% 50%';
+    // Pixel-snap position and font-size so the embed locks to whole-pixel boundaries.
+    // Without snapping, embeds sub-pixel-drift relative to the canvas-drawn strokes
+    // around them as zoom changes. Tradeoff: text "jumps" by 1 pixel each time zoom
+    // crosses a rounding threshold instead of moving continuously — but alignment with
+    // strokes is what matters for a math sketchpad.
+    em.el.style.left = Math.round(centerScreen.x - pxW/2) + 'px';
+    em.el.style.top  = Math.round(centerScreen.y - pxH/2) + 'px';
+    em.el.style.width = pxW + 'px';
+    em.el.style.height = pxH + 'px';
+    em.el.style.transform = `rotate(${totalRot}deg)`;
+    if (em.type === 'text') {
+      em.el.style.fontSize = Math.round(em.data.size * finalScale) + 'px';
+    }
+  } else {
+    const ecx = em.x + em.w/2, ecy = em.y + em.h/2;
+    const centerScreen = worldToScreen(ecx, ecy);
+    const pxW = em.w * v.scale;
+    const pxH = em.h * v.scale;
+    em.el.style.transformOrigin = '50% 50%';
+    em.el.style.left = Math.round(centerScreen.x - pxW/2) + 'px';
+    em.el.style.top  = Math.round(centerScreen.y - pxH/2) + 'px';
+    em.el.style.width = pxW + 'px';
+    em.el.style.height = pxH + 'px';
+    em.el.style.transform = `rotate(${em.rotation || 0}deg)`;
+    if (em.type === 'text') {
+      em.el.style.fontSize = Math.round(em.data.size * v.scale) + 'px';
+    }
+  }
+}
+
+/* =========================================================================
+   IMAGE INPUT — paste, drop, and file picker
+   ========================================================================= */
+
+// Hidden file input wired to the toolbar "Image" button. Multiple selection allowed so
+// users can drop several images at once.
+const _imageFileInput = document.createElement('input');
+_imageFileInput.type = 'file';
+_imageFileInput.accept = 'image/*';
+_imageFileInput.multiple = true;
+_imageFileInput.style.display = 'none';
+document.body.appendChild(_imageFileInput);
+_imageFileInput.addEventListener('change', () => {
+  const files = [..._imageFileInput.files];
+  _imageFileInput.value = '';  // reset so the same file can be re-picked
+  if (!files.length) return;
+  const r = wrap.getBoundingClientRect();
+  const center = screenToWorld(r.width/2, r.height/2);
+  // Stack multiple images with a small offset so they don't fully overlap
+  files.forEach((f, i) => {
+    placeImageFromBlob(f, center.x + i * 20 / state.view.scale, center.y + i * 20 / state.view.scale);
+  });
+});
+document.getElementById('imageUploadBtn').addEventListener('click', () => {
+  _imageFileInput.click();
+});
+
+// Paste: grab any image data from the clipboard and place it at the viewport center.
+// Skipped when focus is in an input/textarea (the paste should target the field, not the
+// canvas — e.g. pasting "y=sin(x)" into the equation field).
+window.addEventListener('paste', (e) => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      e.preventDefault();
+      const blob = item.getAsFile();
+      if (!blob) continue;
+      const r = wrap.getBoundingClientRect();
+      const center = screenToWorld(r.width/2, r.height/2);
+      placeImageFromBlob(blob, center.x, center.y);
+      return;  // place only the first image
+    }
+  }
+});
+
+// Drag-and-drop: image files dropped onto the canvas are placed where the drop happens.
+// Both dragover (with preventDefault to allow drop) and drop must be handled.
+wrap.addEventListener('dragover', (e) => {
+  // Only show the "copy" cursor when something draggable is involved (usually files).
+  if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }
+});
+wrap.addEventListener('drop', (e) => {
+  const files = e.dataTransfer && e.dataTransfer.files;
+  if (!files || !files.length) return;
+  const imageFiles = [...files].filter(f => f.type.startsWith('image/'));
+  if (!imageFiles.length) return;
+  e.preventDefault();
+  const sp = eventScreenCoords(e);
+  const wp = screenToWorld(sp.x, sp.y);
+  imageFiles.forEach((f, i) => {
+    placeImageFromBlob(f, wp.x + i * 20 / state.view.scale, wp.y + i * 20 / state.view.scale);
+  });
+});
+
+/* =========================================================================
+   GRAPHS — LATEX → MATHJS
+   ========================================================================= */
+function latexToExpr(latex) {
+  let s = latex;
+  s = s.replace(/\\cdot/g, '*').replace(/\\times/g, '*').replace(/\\div/g, '/');
+  s = s.replace(/\\pi/g, 'pi').replace(/\\theta/g, 'theta').replace(/\\alpha/g, 'alpha').replace(/\\beta/g, 'beta');
+  s = s.replace(/\\left/g, '').replace(/\\right/g, '');
+  for (let i = 0; i < 5; i++) s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '(($1)/($2))');
+  for (let i = 0; i < 5; i++) s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, 'sqrt($1)');
+  // Absolute value: |...| → abs(...). Iterate so nested bars resolve from the inside out
+  // (each pass converts the innermost pair, where the contents have no further |).
+  for (let i = 0; i < 5; i++) {
+    const next = s.replace(/\|([^|]+)\|/g, 'abs($1)');
+    if (next === s) break;
+    s = next;
+  }
+  s = s.replace(/\\sin/g, 'sin').replace(/\\cos/g, 'cos').replace(/\\tan/g, 'tan');
+  s = s.replace(/\\arcsin/g, 'asin').replace(/\\arccos/g, 'acos').replace(/\\arctan/g, 'atan');
+  s = s.replace(/\\sinh/g, 'sinh').replace(/\\cosh/g, 'cosh').replace(/\\tanh/g, 'tanh');
+  s = s.replace(/\\log/g, 'log10').replace(/\\ln/g, 'log').replace(/\\exp/g, 'exp');
+  for (let i = 0; i < 5; i++) s = s.replace(/\^\{([^{}]*)\}/g, '^($1)');
+  s = s.replace(/\s+/g, '');
+  // Implicit multiplication between adjacent single-letter variables.
+  // mathjs treats `xy` as an undefined symbol, not as `x*y`. We rewrite multi-letter
+  // identifiers using greedy tokenization: at each position, consume the longest known
+  // function/constant name; otherwise consume one character as a single-letter variable.
+  // Then join the resulting tokens with `*`.
+  const KNOWN = [
+    // longest first matters for greedy matching
+    'arcsin','arccos','arctan',
+    'log10','sinh','cosh','tanh','sqrt','asin','acos','atan',
+    'theta','alpha','beta',
+    'sin','cos','tan','log','abs','exp',
+    'ln','pi','e',
+  ];
+  // sort by length desc so the matcher always sees longer candidates first
+  KNOWN.sort((a, b) => b.length - a.length);
+  const tokenize = (id) => {
+    const out = [];
+    let i = 0;
+    while (i < id.length) {
+      // try matching a known name at i
+      let matched = null;
+      for (const name of KNOWN) {
+        if (id.startsWith(name, i)) { matched = name; break; }
+      }
+      if (matched) { out.push(matched); i += matched.length; }
+      else { out.push(id[i]); i++; }
+    }
+    return out.join('*');
+  };
+  s = s.replace(/[A-Za-z][A-Za-z0-9]*/g, (id) => {
+    if (id.length === 1) return id;
+    return tokenize(id);
+  });
+  return s;
+}
+
+// Normalize a user-entered equation into proper LaTeX for KaTeX rendering.
+// User input might already be partial LaTeX (\sin, \pi, \frac{...}) or plain math syntax
+// (sin(x), abs(xy), pi). We need to convert plain words like "sin", "cos", "abs", "pi" into
+// \sin, \cos, \left|...\right|, \pi etc. without double-escaping things the user already typed.
+function normalizeForLatex(s) {
+  if (!s) return '';
+  let out = s;
+  // First convert abs(...) into \left|...\right| — bracket-balanced match.
+  // Iterate so nested abs resolve from the inside out.
+  for (let i = 0; i < 8; i++) {
+    const next = out.replace(/\babs\s*\(([^()]*)\)/g, '\\left|$1\\right|');
+    if (next === out) break;
+    out = next;
+  }
+  // Function names: prepend backslash if the word is currently plain text (not already \name).
+  // Order longest-first so e.g. "arcsin" matches before "sin" gets a chance.
+  const fns = [
+    'arcsin','arccos','arctan',
+    'sinh','cosh','tanh',
+    'sin','cos','tan',
+    'log','ln','exp','sqrt','min','max',
+  ];
+  for (const fn of fns) {
+    // Match the word but only when not preceded by a backslash (i.e. user didn't already write \fn).
+    const re = new RegExp('(^|[^\\\\A-Za-z])' + fn + '(?![A-Za-z])', 'g');
+    out = out.replace(re, (m, lead) => lead + '\\' + fn);
+  }
+  // Constants: pi, theta, alpha, beta — same treatment
+  const consts = ['theta','alpha','beta','pi'];
+  for (const c of consts) {
+    const re = new RegExp('(^|[^\\\\A-Za-z])' + c + '(?![A-Za-z])', 'g');
+    out = out.replace(re, (m, lead) => lead + '\\' + c);
+  }
+  // Convert `*` to `\cdot` for prettier rendering
+  out = out.replace(/\*/g, ' \\cdot ');
+  return out;
+}
+
+function renderLatexPreview(elemId, latex) {
+  const el = document.getElementById(elemId); if (!el) return;
+  const tex = normalizeForLatex(latex);
+  try { katex.render(tex, el, { throwOnError: false, displayMode: false }); }
+  catch (_) { el.textContent = latex; }
+}
+
+// Default settings for a new plot. Re-edit reuses the graph's stored settings instead.
+function defaultGraphSettings() {
+  return {
+    xLabel: 'x', yLabel: 'y',
+    xMin: -10, xMax: 10,
+    yMin: -6, yMax: 6,
+    showTicks: false,
+  };
+}
+
+// Validate min/max ordering on settings, falling back to defaults if reversed/equal.
+// Mutates and returns the input for chaining; safe to call on a fresh copy of settings.
+function validateGraphRanges(s) {
+  if (!(s.xMax > s.xMin)) { s.xMin = -10; s.xMax = 10; }
+  if (!(s.yMax > s.yMin)) { s.yMin = -6; s.yMax = 6; }
+  return s;
+}
+
+// Pick a "nice" tick spacing for a given range — one of 1, 2, 5 × 10^n — aiming for
+// roughly `target` ticks across the range.
+function niceTickStep(range, target) {
+  if (!(range > 0)) return 1;
+  const rough = range / target;
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm = rough / mag;
+  let nice;
+  if (norm < 1.5) nice = 1;
+  else if (norm < 3.5) nice = 2;
+  else if (norm < 7.5) nice = 5;
+  else nice = 10;
+  return nice * mag;
+}
+
+// Read the current values from the settings inputs in the modal.
+function readGraphSettings() {
+  const num = (id, def) => {
+    const v = parseFloat(document.getElementById(id).value);
+    return isFinite(v) ? v : def;
+  };
+  return {
+    xLabel: document.getElementById('gs_xLabel').value,
+    yLabel: document.getElementById('gs_yLabel').value,
+    xMin: num('gs_xMin', -10),
+    xMax: num('gs_xMax', 10),
+    yMin: num('gs_yMin', -6),
+    yMax: num('gs_yMax', 6),
+    showTicks: document.getElementById('gs_showTicks').checked,
+  };
+}
+
+// Write settings into the input fields.
+function writeGraphSettings(s) {
+  document.getElementById('gs_xLabel').value = s.xLabel ?? 'x';
+  document.getElementById('gs_yLabel').value = s.yLabel ?? 'y';
+  document.getElementById('gs_xMin').value = s.xMin ?? -10;
+  document.getElementById('gs_xMax').value = s.xMax ?? 10;
+  document.getElementById('gs_yMin').value = s.yMin ?? -6;
+  document.getElementById('gs_yMax').value = s.yMax ?? 6;
+  document.getElementById('gs_showTicks').checked = !!s.showTicks;
+}
+
+// Wait until Plotly and mathjs are available. They're loaded with `defer` so the app
+// boots fast; this is the gate that ensures the graph modal has what it needs.
+function ensureGraphDeps() {
+  return new Promise((resolve) => {
+    if (typeof Plotly !== 'undefined' && typeof math !== 'undefined') {
+      resolve(); return;
+    }
+    const start = Date.now();
+    const tick = () => {
+      if (typeof Plotly !== 'undefined' && typeof math !== 'undefined') resolve();
+      else if (Date.now() - start > 10000) resolve();  // give up after 10s; modal will show errors
+      else setTimeout(tick, 30);
+    };
+    tick();
+  });
+}
+
+function openGraphModal() {
+  // Show the modal immediately for responsiveness; the preview waits for deps.
+  if (!state.editingGraphId) {
+    document.getElementById('g1d_fn').value = '';
+    document.getElementById('graphPreview_box').innerHTML = '';
+    writeGraphSettings(defaultGraphSettings());
+  }
+  document.getElementById('graphModal').style.display = 'flex';
+  renderLatexPreview('g1d_render', '');
+  document.getElementById('g1d_fn').focus();
+  // Render the preview as soon as Plotly/mathjs are ready. If they're already loaded,
+  // this is effectively synchronous after the focus.
+  ensureGraphDeps().then(previewGraph);
+}
+
+/* =========================================================================
+   AXES — insert 1D / 2D / 3D coordinate systems as vector strokes.
+   Strokes are stored in world units, so they pan/zoom/erase like everything else.
+   ========================================================================= */
+function insertAxes(kind) {
+  const layer = activeLayer(); if (!layer) return;
+  const r = wrap.getBoundingClientRect();
+  const center = screenToWorld(r.width / 2, r.height / 2);
+
+  const screenSpan = Math.min(r.width, r.height) * 0.6;
+  const span = screenSpan / state.view.scale;
+  const half = span / 2;
+  const lineWidth = 2 / state.view.scale;
+  const arrowLen = 9 / state.view.scale;
+  const arrowWidth = 9 / state.view.scale;
+  const color = state.penColor;
+  // groupId so all axes from this call select/move together
+  const groupId = 'A' + (nextGraphId++);
+
+  const strokes = [];
+  const axisStroke = (ax, ay, bx, by, ends) => {
+    const dx = bx - ax, dy = by - ay;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    const px = -uy, py = ux;
+    const pts = [];
+    if (ends === 'both' || ends === 'neg') {
+      const baseX = ax + ux * arrowLen, baseY = ay + uy * arrowLen;
+      pts.push({ x: baseX + px * arrowWidth/2, y: baseY + py * arrowWidth/2 });
+      pts.push({ x: ax, y: ay });
+      pts.push({ x: baseX - px * arrowWidth/2, y: baseY - py * arrowWidth/2 });
+      pts.push({ x: ax, y: ay });
+    } else {
+      pts.push({ x: ax, y: ay });
+    }
+    pts.push({ x: bx, y: by });
+    if (ends === 'both' || ends === 'pos') {
+      const baseX = bx - ux * arrowLen, baseY = by - uy * arrowLen;
+      pts.push({ x: baseX + px * arrowWidth/2, y: baseY + py * arrowWidth/2 });
+      pts.push({ x: bx, y: by });
+      pts.push({ x: baseX - px * arrowWidth/2, y: baseY - py * arrowWidth/2 });
+    }
+    strokes.push({ points: pts, color, width: lineWidth, mode: 'pen', graphId: groupId, opacity: 0.5 });
+  };
+
+  if (kind === 'axes2d') {
+    const cx = center.x, cy = center.y;
+    axisStroke(cx - half, cy, cx + half, cy, 'both');
+    axisStroke(cx, cy - half, cx, cy + half, 'both');
+  } else if (kind === 'axes3d') {
+    // 3D coordinate system, z-up, right-handed.
+    // Each axis has length L (world units): |(L*cos θ, -L*sin θ)| = L*sqrt(cos²+sin²) = L.
+    //
+    // The xy-plane is tilted toward the viewer slightly (less flat than fully horizontal),
+    // and rotated about z so x leans more toward the camera (more downward) and y is
+    // pushed counter-clockwise away from the camera (more horizontal-right).
+    // x and y remain perpendicular in world-space (they're true coord axes); their screen
+    // projections aren't 90° apart due to oblique projection.
+    //   z: angle =  90°  → straight up
+    //   x: angle = 215°  → down-left, leaning toward viewer (35° below horizontal-left)
+    //   y: angle =  -5°  → mostly horizontal-right, very slight downward
+    // Right-hand rule: x × y = z. ✓
+    const cx = center.x, cy = center.y;
+    const L = half;
+    const zAng =  90 * Math.PI / 180;
+    axisStroke(cx, cy, cx + L * Math.cos(zAng), cy - L * Math.sin(zAng), 'pos');
+    const xAng = 215 * Math.PI / 180;
+    const xL = L * 0.85;  // slight shortening — diagonal axes appear longer than vertical/horizontal at the same length
+    axisStroke(cx, cy, cx + xL * Math.cos(xAng), cy - xL * Math.sin(xAng), 'pos');
+    const yAng =  -5 * Math.PI / 180;
+    axisStroke(cx, cy, cx + L * Math.cos(yAng), cy - L * Math.sin(yAng), 'pos');
+  }
+
+  for (const s of strokes) layer.strokes.push(s);
+  render();
+  pushHistory(kind === 'axes2d' ? 'Add 2D axes' : 'Add 3D axes');
+}
+
+/* =========================================================================
+   EQUATION PLOT — supports y = f(x), x = f(y), and implicit F(x,y) = 0.
+   Placed as VECTOR STROKES (not an image), so it pans/zooms/edits like everything else.
+   ========================================================================= */
+// In-modal live preview: redraws via Plotly (static, non-interactive) as the user types,
+// so they see the curve before placing. Debounced to avoid thrashing on every keystroke.
+const _liveDebounce = { t: null };
+function scheduleLivePreview() {
+  if (_liveDebounce.t) clearTimeout(_liveDebounce.t);
+  _liveDebounce.t = setTimeout(previewGraph, 120);
+}
+document.getElementById('g1d_fn').addEventListener('input', e => {
+  renderLatexPreview('g1d_render', e.target.value);
+  scheduleLivePreview();
+});
+document.getElementById('g1d_fn').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('graphPlace').click();
+  }
+});
+// Document-level Enter: triggers Place when the graph modal is open and focus isn't in
+// another text input. Typing in label/range fields and pressing Enter should NOT submit
+// (let the field handle it normally) — only fire when focus is on the body or a non-input.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const modal = document.getElementById('graphModal');
+  if (!modal || modal.style.display === 'none') return;
+  const t = e.target;
+  if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT') return;
+  e.preventDefault();
+  document.getElementById('graphPlace').click();
+});
+
+// Settings inputs: any change triggers a live re-render of the preview.
+for (const id of ['gs_xLabel','gs_yLabel','gs_xMin','gs_xMax','gs_yMin','gs_yMax']) {
+  document.getElementById(id).addEventListener('input', scheduleLivePreview);
+}
+document.getElementById('gs_showTicks').addEventListener('change', scheduleLivePreview);
+
+// "fit y to plot" button: sample the function over the current x range and pick a y range
+// that's symmetric about y=0 (so the x-axis stays centered) and contains all function values.
+document.getElementById('gs_autoFitBtn').addEventListener('click', () => {
+  const fnText = document.getElementById('g1d_fn').value.trim();
+  if (!fnText) return;
+  let parsed;
+  try { parsed = parseEquation(fnText); } catch (_) { return; }
+  if (parsed.kind !== 'y_of_x') return;  // only meaningful for y=f(x)
+  const num = (id, def) => { const v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : def; };
+  let xMin = num('gs_xMin', -10), xMax = num('gs_xMax', 10);
+  if (!(xMax > xMin)) { xMin = -10; xMax = 10; }
+  try {
+    const compiled = math.compile(parsed.expr);
+    let lo = Infinity, hi = -Infinity;
+    const N = 400;
+    for (let i = 0; i <= N; i++) {
+      const x = xMin + (xMax - xMin) * i / N;
+      let v; try { v = compiled.evaluate({x}); } catch (_) { v = NaN; }
+      if (typeof v === 'number' && isFinite(v)) {
+        if (v < lo) lo = v;
+        if (v > hi) hi = v;
+      }
+    }
+    if (!isFinite(lo) || !isFinite(hi) || hi <= lo) return;
+    // Clamp to a sane absolute bound so a single divergent value doesn't ruin the fit.
+    lo = Math.max(lo, -1e6); hi = Math.min(hi, 1e6);
+    // Make the range symmetric about 0: use the larger absolute value as the half-range.
+    const half = Math.max(Math.abs(lo), Math.abs(hi)) * 1.1 || 1;
+    document.getElementById('gs_yMin').value = +(-half).toFixed(4);
+    document.getElementById('gs_yMax').value = +half.toFixed(4);
+    scheduleLivePreview();
+  } catch (_) {}
+});
+
+// Scroll on the preview to zoom in/out. Zoom is symmetric about each axis's midpoint, so
+// scrolling preserves the visible center. Wheel-up zooms in (smaller range), wheel-down out.
+document.getElementById('graphPreview_box').addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const num = (id, def) => { const v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : def; };
+  let xMin = num('gs_xMin', -10), xMax = num('gs_xMax', 10);
+  let yMin = num('gs_yMin', -6), yMax = num('gs_yMax', 6);
+  if (!(xMax > xMin)) { xMin = -10; xMax = 10; }
+  if (!(yMax > yMin)) { yMin = -6; yMax = 6; }
+  // Multiplier: each notch is ~10% zoom. deltaY > 0 = scroll down = zoom out.
+  const factor = Math.pow(1.0015, e.deltaY);
+  const xc = (xMin + xMax) / 2, halfX = (xMax - xMin) / 2 * factor;
+  const yc = (yMin + yMax) / 2, halfY = (yMax - yMin) / 2 * factor;
+  // Round to a sane precision to keep the input fields readable.
+  const round = v => Math.abs(v) >= 100 ? +v.toFixed(1) : +v.toFixed(4);
+  document.getElementById('gs_xMin').value = round(xc - halfX);
+  document.getElementById('gs_xMax').value = round(xc + halfX);
+  document.getElementById('gs_yMin').value = round(yc - halfY);
+  document.getElementById('gs_yMax').value = round(yc + halfY);
+  scheduleLivePreview();
+}, { passive: false });
+
+// Show an error message inside the graph preview box. Used by previewGraph and the
+// place handler when the equation can't be parsed or doesn't produce any output.
+function showGraphPreviewError(message) {
+  const box = document.getElementById('graphPreview_box');
+  box.innerHTML =
+    '<div style="padding:20px;color:#a64a3a;font-family:var(--mono);font-size:12px">' +
+    escapeHTML(message) +
+    '</div>';
+}
+
+function previewGraph() {
+  const box = document.getElementById('graphPreview_box');
+  // Defer-loaded deps may not be ready yet on the first preview call; bail and let the
+  // openGraphModal promise call us again once they're ready.
+  if (typeof Plotly === 'undefined' || typeof math === 'undefined') {
+    box.innerHTML = '<div style="padding:20px;color:var(--chrome-text-soft);font-family:var(--mono);font-size:11px;letter-spacing:0.04em">loading…</div>';
+    return;
+  }
+  const fnText = document.getElementById('g1d_fn').value.trim();
+  const settings = readGraphSettings();
+  // Validate ranges; fall back to defaults if user typed nonsense (min ≥ max).
+  let { xMin, xMax, yMin, yMax } = settings;
+  if (!(xMax > xMin)) { xMin = -10; xMax = 10; }
+  if (!(yMax > yMin)) { yMin = -6; yMax = 6; }
+
+  // Empty input → render bare axes only (no curve), so the preview is always present.
+  if (!fnText) {
+    const layout = baseLayout(settings, xMin, xMax, yMin, yMax);
+    Plotly.react(box, [], layout, { staticPlot: true, displayModeBar: false, responsive: true });
+    return;
+  }
+  let traces = [], layout = {};
+  try {
+    const parsed = parseEquation(fnText);
+
+    layout = baseLayout(settings, xMin, xMax, yMin, yMax);
+    if (parsed.kind === 'y_of_x') {
+      const compiled = math.compile(parsed.expr);
+      const xs = [], ys = [];
+      const N = 400;
+      for (let i = 0; i <= N; i++) {
+        const x = xMin + (xMax - xMin) * i / N;
+        try { ys.push(compiled.evaluate({x})); xs.push(x); } catch (_) { ys.push(null); xs.push(x); }
+      }
+      traces = [{ x: xs, y: ys, mode: 'lines', line: { color: '#2b3a5f', width: 2 } }];
+    } else if (parsed.kind === 'x_of_y') {
+      const compiled = math.compile(parsed.expr);
+      const xs = [], ys = [];
+      const N = 240;
+      for (let i = 0; i <= N; i++) {
+        const y = yMin + (yMax - yMin) * i / N;
+        try { xs.push(compiled.evaluate({y})); ys.push(y); } catch (_) { xs.push(null); ys.push(y); }
+      }
+      traces = [{ x: xs, y: ys, mode: 'lines', line: { color: '#2b3a5f', width: 2 } }];
+    } else if (parsed.kind === 'implicit') {
+      const compiled = math.compile(parsed.expr);
+      const NX = 160, NY = 96;
+      const dx = (xMax - xMin) / NX, dy = (yMax - yMin) / NY;
+      const F = new Float64Array((NX+1)*(NY+1));
+      for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) {
+        const x = xMin + i*dx, y = yMin + j*dy;
+        let v; try { v = compiled.evaluate({x, y}); } catch(_) { v = NaN; }
+        F[j*(NX+1)+i] = (typeof v === 'number' && isFinite(v)) ? v : NaN;
+      }
+      const interp = (a, b, fa, fb) => { const t = fa/(fa-fb); return [a[0]+t*(b[0]-a[0]), a[1]+t*(b[1]-a[1])]; };
+      const xs = [], ys = [];
+      for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+        const f00=F[j*(NX+1)+i], f10=F[j*(NX+1)+i+1], f01=F[(j+1)*(NX+1)+i], f11=F[(j+1)*(NX+1)+i+1];
+        if (isNaN(f00)||isNaN(f10)||isNaN(f01)||isNaN(f11)) continue;
+        const code = (f00>0?1:0)|(f10>0?2:0)|(f11>0?4:0)|(f01>0?8:0);
+        if (code === 0 || code === 15) continue;
+        const x0=xMin+i*dx, x1=x0+dx, y0=yMin+j*dy, y1=y0+dy;
+        const c00=[x0,y0], c10=[x1,y0], c11=[x1,y1], c01=[x0,y1];
+        const eb = () => interp(c00,c10,f00,f10);
+        const er = () => interp(c10,c11,f10,f11);
+        const et = () => interp(c01,c11,f01,f11);
+        const el = () => interp(c00,c01,f00,f01);
+        let segs=[];
+        switch(code){
+          case 1:case 14: segs=[[el(),eb()]]; break;
+          case 2:case 13: segs=[[eb(),er()]]; break;
+          case 4:case 11: segs=[[er(),et()]]; break;
+          case 8:case 7:  segs=[[et(),el()]]; break;
+          case 3:case 12: segs=[[el(),er()]]; break;
+          case 6:case 9:  segs=[[eb(),et()]]; break;
+          case 5:  segs=[[el(),et()],[eb(),er()]]; break;
+          case 10: segs=[[el(),eb()],[et(),er()]]; break;
+        }
+        for (const [a,b] of segs) {
+          xs.push(a[0], b[0], null);
+          ys.push(a[1], b[1], null);
+        }
+      }
+      traces = [{ x: xs, y: ys, mode: 'lines', line: { color: '#2b3a5f', width: 2 } }];
+    }
+    Plotly.react(box, traces, layout, { staticPlot: true, displayModeBar: false, responsive: true });
+  } catch (err) {
+    showGraphPreviewError('parse error: ' + err.message);
+  }
+}
+
+function baseLayout(settings, xMin, xMax, yMin, yMax) {
+  const xAxis = {
+    title: settings.xLabel || '',
+    gridcolor: '#e8e6df',
+    zerolinecolor: '#c9c5b8',
+    range: [xMin, xMax],
+  };
+  const yAxis = {
+    title: settings.yLabel || '',
+    gridcolor: '#e8e6df',
+    zerolinecolor: '#c9c5b8',
+    range: [yMin, yMax],
+  };
+  if (settings.showTicks) {
+    // Auto-pick a "nice" step for each axis based on its range, aiming for ~10 ticks across.
+    xAxis.dtick = niceTickStep(xMax - xMin, 10);
+    yAxis.dtick = niceTickStep(yMax - yMin, 10);
+    xAxis.showticklabels = true;
+    yAxis.showticklabels = true;
+    xAxis.ticks = 'outside';
+    yAxis.ticks = 'outside';
+  } else {
+    xAxis.showticklabels = false;
+    yAxis.showticklabels = false;
+    xAxis.ticks = '';
+    yAxis.ticks = '';
+  }
+  return {
+    margin: { l: 44, r: 20, t: 20, b: 40 },
+    paper_bgcolor: '#ffffff',
+    plot_bgcolor: '#ffffff',
+    font: { family: 'Fraunces, serif', size: 12, color: '#1a1a1a' },
+    xaxis: xAxis,
+    yaxis: yAxis,
+    showlegend: false,
+  };
+}
+
+// Parse a typed equation string into one of three structured forms:
+//   { kind: 'y_of_x', expr }       — plot y = expr(x)
+//   { kind: 'x_of_y', expr }       — plot x = expr(y)
+//   { kind: 'implicit', expr }     — plot expr(x,y) = 0  (zero level set)
+// Throws on parse failure. `original` keeps the raw user input for layer naming.
+function parseEquation(latex) {
+  const original = latex.trim();
+  if (!original) throw new Error('empty equation');
+  // Split on the FIRST "=" — anything beyond is RHS
+  const eqIdx = original.indexOf('=');
+  if (eqIdx < 0) {
+    // No "=" at all: treat as bare RHS, default to y = expr(x)
+    return { kind: 'y_of_x', expr: latexToExpr(original), original: 'y = ' + original };
+  }
+  const lhsRaw = original.slice(0, eqIdx).trim();
+  const rhsRaw = original.slice(eqIdx + 1).trim();
+
+  // Detect explicit forms by examining the LHS:
+  //   y, f(x), g(x), h(x), F(x), etc. → y_of_x with rhs as expr in x
+  //   x, p(y), q(y) → x_of_y
+  // Anything else → implicit
+  const lhs = lhsRaw.replace(/\s/g, '');
+  const yOfX = /^([a-zA-Z]\(x\)|y)$/.test(lhs);
+  const xOfY = /^([a-zA-Z]\(y\)|x)$/.test(lhs);
+
+  if (yOfX) {
+    return { kind: 'y_of_x', expr: latexToExpr(rhsRaw), original };
+  }
+  if (xOfY) {
+    return { kind: 'x_of_y', expr: latexToExpr(rhsRaw), original };
+  }
+  // Implicit: F(x,y) = G(x,y) → form expr = (LHS) - (RHS), find zero level set
+  const lhsExpr = latexToExpr(lhsRaw);
+  const rhsExpr = latexToExpr(rhsRaw);
+  return { kind: 'implicit', expr: '(' + lhsExpr + ')-(' + rhsExpr + ')', original };
+}
+
+// Generate vector stroke segments for any of the three equation kinds.
+// Output coordinates are in world units (origin at originX, originY), with the
+// math viewport (settings.xMin..xMax) × (yMin..yMax) mapped into a screen-space box of
+// `screenSpan` pixels wide.
+function generateEquationStrokes(parsed, settings, originX, originY, screenSpan, viewScale, graphId) {
+  let { xMin: xmin, xMax: xmax, yMin: ymin, yMax: ymax } = settings;
+  if (!(xmax > xmin)) { xmin = -10; xmax = 10; }
+  if (!(ymax > ymin)) { ymin = -6; ymax = 6; }
+
+  // The placed graph always occupies a fixed world-space box: screenSpan wide × 60% tall.
+  // Independent ux/uy scales map each axis's math range into the same world extent regardless
+  // of how wide or narrow the user set it, so changing the range zooms the plot in/out
+  // rather than resizing the graph.
+  const worldWidth = screenSpan / viewScale;
+  const worldHeight = worldWidth * 0.6;
+  const ux = worldWidth / (xmax - xmin);
+  const uy = worldHeight / (ymax - ymin);
+  const lineWidth = 2 / viewScale;
+
+  // Convert math coords to world coords. Origin (0,0) maps to (originX, originY) in world space
+  // IF that's inside the math range; otherwise the math range is centered at the world origin.
+  const W = (mx, my) => ({ x: originX + (mx - (xmin+xmax)/2) * ux, y: originY - (my - (ymin+ymax)/2) * uy });
+
+  const compiled = math.compile(parsed.expr);
+  let segments = [];
+
+  if (parsed.kind === 'y_of_x') {
+    const N = 600;
+    let cur = [];
+    let prevY = null;
+    const flush = () => { if (cur.length >= 2) segments.push(cur); cur = []; };
+    for (let i = 0; i <= N; i++) {
+      const x = xmin + (xmax - xmin) * i / N;
+      let y; try { y = compiled.evaluate({ x }); } catch (_) { y = NaN; }
+      // Clip to the visible y range so the curve stays within the configured box.
+      if (typeof y !== 'number' || !isFinite(y) || y > ymax || y < ymin) {
+        flush(); prevY = null; continue;
+      }
+      // Break on sudden jumps (asymptotes) — proportional to the y range so it works
+      // for any scale.
+      if (prevY !== null && Math.abs(y - prevY) > (ymax - ymin) * 0.4) flush();
+      cur.push(W(x, y));
+      prevY = y;
+    }
+    flush();
+  } else if (parsed.kind === 'x_of_y') {
+    const N = 360;
+    let cur = [];
+    let prevX = null;
+    const flush = () => { if (cur.length >= 2) segments.push(cur); cur = []; };
+    for (let i = 0; i <= N; i++) {
+      const y = ymin + (ymax - ymin) * i / N;
+      let x; try { x = compiled.evaluate({ y }); } catch (_) { x = NaN; }
+      // Clip to the visible x range
+      if (typeof x !== 'number' || !isFinite(x) || x > xmax || x < xmin) {
+        flush(); prevX = null; continue;
+      }
+      if (prevX !== null && Math.abs(x - prevX) > (xmax - xmin) * 0.4) flush();
+      cur.push(W(x, y));
+      prevX = x;
+    }
+    flush();
+  } else if (parsed.kind === 'implicit') {
+    // Marching squares on a fine grid: find zero contour of F(x,y).
+    const NX = 200, NY = 120;
+    const dx = (xmax - xmin) / NX;
+    const dy = (ymax - ymin) / NY;
+    const F = new Float64Array((NX + 1) * (NY + 1));
+    for (let j = 0; j <= NY; j++) {
+      const y = ymin + j * dy;
+      for (let i = 0; i <= NX; i++) {
+        const x = xmin + i * dx;
+        let v; try { v = compiled.evaluate({ x, y }); } catch (_) { v = NaN; }
+        F[j * (NX + 1) + i] = (typeof v === 'number' && isFinite(v)) ? v : NaN;
+      }
+    }
+    const interp = (a, b, fa, fb) => {
+      const t = fa / (fa - fb);
+      return { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
+    };
+    for (let j = 0; j < NY; j++) {
+      for (let i = 0; i < NX; i++) {
+        const f00 = F[j*(NX+1) + i];
+        const f10 = F[j*(NX+1) + i + 1];
+        const f01 = F[(j+1)*(NX+1) + i];
+        const f11 = F[(j+1)*(NX+1) + i + 1];
+        if (isNaN(f00) || isNaN(f10) || isNaN(f01) || isNaN(f11)) continue;
+        const code =
+          (f00 > 0 ? 1 : 0) |
+          (f10 > 0 ? 2 : 0) |
+          (f11 > 0 ? 4 : 0) |
+          (f01 > 0 ? 8 : 0);
+        if (code === 0 || code === 15) continue;
+        const x0 = xmin + i * dx, x1 = x0 + dx;
+        const y0 = ymin + j * dy, y1 = y0 + dy;
+        const c00 = { x: x0, y: y0 };
+        const c10 = { x: x1, y: y0 };
+        const c11 = { x: x1, y: y1 };
+        const c01 = { x: x0, y: y1 };
+        const eb = () => interp(c00, c10, f00, f10);
+        const er = () => interp(c10, c11, f10, f11);
+        const et = () => interp(c01, c11, f01, f11);
+        const el = () => interp(c00, c01, f00, f01);
+        let segs = [];
+        switch (code) {
+          case 1:  case 14: segs = [[el(), eb()]]; break;
+          case 2:  case 13: segs = [[eb(), er()]]; break;
+          case 4:  case 11: segs = [[er(), et()]]; break;
+          case 8:  case 7:  segs = [[et(), el()]]; break;
+          case 3:  case 12: segs = [[el(), er()]]; break;
+          case 6:  case 9:  segs = [[eb(), et()]]; break;
+          case 5:  segs = [[el(), et()], [eb(), er()]]; break;
+          case 10: segs = [[el(), eb()], [et(), er()]]; break;
+        }
+        for (const [a, b] of segs) {
+          segments.push([ W(a.x, a.y), W(b.x, b.y) ]);
+        }
+      }
+    }
+  }
+
+  return segments.map(pts => ({
+    points: pts,
+    color: state.penColor,
+    width: lineWidth,
+    mode: 'pen',
+    graphId,
+  }));
+}
+
+// Build 2D axes stroke list (single polyline for x, single for y), centered at (originX, originY).
+// The placed axes always span a fixed world-space box (screenSpan wide × 60% tall), with the
+// math range stretched to fill it — so changing xMin/xMax/yMin/yMax adjusts the visible math
+// extent without changing the physical size of the placed graph.
+// If settings.showTicks, also draws small perpendicular tick marks at auto-picked nice steps.
+function buildAxes2DStrokes(settings, originX, originY, screenSpan, viewScale, graphId, color) {
+  let { xMin: xmin, xMax: xmax, yMin: ymin, yMax: ymax } = settings;
+  if (!(xmax > xmin)) { xmin = -10; xmax = 10; }
+  if (!(ymax > ymin)) { ymin = -6; ymax = 6; }
+  const worldWidth = screenSpan / viewScale;
+  const worldHeight = worldWidth * 0.6;
+  const ux = worldWidth / (xmax - xmin);
+  const uy = worldHeight / (ymax - ymin);
+  const cxMath = (xmin + xmax) / 2;
+  const cyMath = (ymin + ymax) / 2;
+  // World half-spans of the axes (constant — don't depend on math range)
+  const halfX = worldWidth / 2;
+  const halfY = worldHeight / 2;
+  // Where in world coords the math origin (0,0) actually is:
+  const ox = originX + (0 - cxMath) * ux;
+  const oy = originY - (0 - cyMath) * uy;
+  // But the axis LINES extend across the full visible math range — so the x-axis line goes
+  // from (xmin, 0) to (xmax, 0), i.e. world (originX - halfX, oy) to (originX + halfX, oy).
+  // (Only valid if 0 is inside the y range; otherwise draw the x-axis at the closest edge.)
+  const axisY_math = (0 >= ymin && 0 <= ymax) ? 0 : (Math.abs(ymin) < Math.abs(ymax) ? ymin : ymax);
+  const axisX_math = (0 >= xmin && 0 <= xmax) ? 0 : (Math.abs(xmin) < Math.abs(xmax) ? xmin : xmax);
+  const xAxisWorldY = originY - (axisY_math - cyMath) * uy;
+  const yAxisWorldX = originX + (axisX_math - cxMath) * ux;
+
+  const lineWidth = 2 / viewScale;
+  const arrowLen = 9 / viewScale;
+  const arrowWidth = 9 / viewScale;
+  const tickLen = 5 / viewScale;
+  const out = [];
+
+  // Helper: build an arrowed-line stroke for one axis.
+  const makeAxis = (ax, ay, bx, by) => {
+    const dx = bx - ax, dy = by - ay;
+    const len = Math.hypot(dx, dy) || 1;
+    const dirX = dx / len, dirY = dy / len;
+    const perpX = -dirY, perpY = dirX;
+    const pts = [];
+    let baseX = ax + dirX * arrowLen, baseY = ay + dirY * arrowLen;
+    pts.push({ x: baseX + perpX * arrowWidth/2, y: baseY + perpY * arrowWidth/2 });
+    pts.push({ x: ax, y: ay });
+    pts.push({ x: baseX - perpX * arrowWidth/2, y: baseY - perpY * arrowWidth/2 });
+    pts.push({ x: ax, y: ay });
+    pts.push({ x: bx, y: by });
+    baseX = bx - dirX * arrowLen; baseY = by - dirY * arrowLen;
+    pts.push({ x: baseX + perpX * arrowWidth/2, y: baseY + perpY * arrowWidth/2 });
+    pts.push({ x: bx, y: by });
+    pts.push({ x: baseX - perpX * arrowWidth/2, y: baseY - perpY * arrowWidth/2 });
+    out.push({ points: pts, color, width: lineWidth, mode: 'pen', graphId, opacity: 0.5 });
+  };
+
+  // x axis: spans world x = originX - halfX → originX + halfX, at the chosen y line
+  makeAxis(originX - halfX, xAxisWorldY, originX + halfX, xAxisWorldY);
+  // y axis: spans world y = originY - halfY → originY + halfY, at the chosen x line
+  makeAxis(yAxisWorldX, originY - halfY, yAxisWorldX, originY + halfY);
+
+  // Tick marks (if enabled). Each tick is a tiny perpendicular line.
+  // Step is auto-picked per axis based on its range, so the count of ticks stays sane
+  // regardless of how wide or narrow the user's range is.
+  if (settings.showTicks) {
+    const xStep = niceTickStep(xmax - xmin, 10);
+    const yStep = niceTickStep(ymax - ymin, 10);
+    const maxTicks = 200;
+    const xStart = Math.ceil(xmin / xStep) * xStep;
+    const yStart = Math.ceil(ymin / yStep) * yStep;
+    // Math-coord thresholds for where the arrows sit at each axis endpoint. Any tick
+    // within this distance of the axis tip would be overdrawn by the arrowhead, so we
+    // skip those for a cleaner look.
+    const xArrowZone = arrowLen / ux;
+    const yArrowZone = arrowLen / uy;
+    let xCount = 0, yCount = 0;
+    for (let v = xStart; v <= xmax + xStep * 0.001 && xCount < maxTicks; v += xStep, xCount++) {
+      if (Math.abs(v) < xStep * 0.0001) continue;  // skip the origin tick
+      if (v < xmin + xArrowZone || v > xmax - xArrowZone) continue;  // under an arrow
+      const wx = originX + (v - cxMath) * ux;
+      out.push({
+        points: [
+          { x: wx, y: xAxisWorldY - tickLen/2 },
+          { x: wx, y: xAxisWorldY + tickLen/2 },
+        ],
+        color, width: lineWidth, mode: 'pen', graphId, opacity: 0.5,
+      });
+    }
+    for (let v = yStart; v <= ymax + yStep * 0.001 && yCount < maxTicks; v += yStep, yCount++) {
+      if (Math.abs(v) < yStep * 0.0001) continue;
+      if (v < ymin + yArrowZone || v > ymax - yArrowZone) continue;  // under an arrow
+      const wy = originY - (v - cyMath) * uy;
+      out.push({
+        points: [
+          { x: yAxisWorldX - tickLen/2, y: wy },
+          { x: yAxisWorldX + tickLen/2, y: wy },
+        ],
+        color, width: lineWidth, mode: 'pen', graphId, opacity: 0.5,
+      });
+    }
+  }
+
+  return out;
+}
+
+// Compute tick-label positions and values for a placed graph. Returns an array of
+// { x, y, text, anchor } where (x, y) is the world position to place the text and
+// anchor describes alignment ('top-center' for x-axis labels, 'middle-right' for y-axis).
+// Skips ticks under the arrow zones and the origin (which is covered by the axis cross).
+function computeTickLabels(settings, originX, originY, screenSpan, viewScale) {
+  let { xMin: xmin, xMax: xmax, yMin: ymin, yMax: ymax } = settings;
+  if (!(xmax > xmin)) { xmin = -10; xmax = 10; }
+  if (!(ymax > ymin)) { ymin = -6; ymax = 6; }
+  const worldWidth = screenSpan / viewScale;
+  const worldHeight = worldWidth * 0.6;
+  const ux = worldWidth / (xmax - xmin);
+  const uy = worldHeight / (ymax - ymin);
+  const cxMath = (xmin + xmax) / 2;
+  const cyMath = (ymin + ymax) / 2;
+  const axisY_math = (0 >= ymin && 0 <= ymax) ? 0 : (Math.abs(ymin) < Math.abs(ymax) ? ymin : ymax);
+  const axisX_math = (0 >= xmin && 0 <= xmax) ? 0 : (Math.abs(xmin) < Math.abs(xmax) ? xmin : xmax);
+  const xAxisWorldY = originY - (axisY_math - cyMath) * uy;
+  const yAxisWorldX = originX + (axisX_math - cxMath) * ux;
+  const arrowLen = 9 / viewScale;
+  const tickLen = 5 / viewScale;
+  const labelGap = 3 / viewScale;  // tight space between tick mark and label text
+
+  const xStep = niceTickStep(xmax - xmin, 10);
+  const yStep = niceTickStep(ymax - ymin, 10);
+  const xArrowZone = arrowLen / ux;
+  const yArrowZone = arrowLen / uy;
+
+  // Format tick values: integers stay clean, decimals trimmed to step's precision.
+  const fmt = (v, step) => {
+    if (Math.abs(v) < step * 0.0001) return '0';
+    const decimals = step >= 1 ? 0 : Math.max(0, -Math.floor(Math.log10(step)));
+    return Number(v.toFixed(decimals)).toString();
+  };
+
+  const labels = [];
+  const xStart = Math.ceil(xmin / xStep) * xStep;
+  const yStart = Math.ceil(ymin / yStep) * yStep;
+  for (let v = xStart, n = 0; v <= xmax + xStep * 0.001 && n < 200; v += xStep, n++) {
+    if (Math.abs(v) < xStep * 0.0001) continue;
+    if (v < xmin + xArrowZone || v > xmax - xArrowZone) continue;
+    const wx = originX + (v - cxMath) * ux;
+    labels.push({ x: wx, y: xAxisWorldY + tickLen/2 + labelGap, text: fmt(v, xStep), anchor: 'top-center' });
+  }
+  for (let v = yStart, n = 0; v <= ymax + yStep * 0.001 && n < 200; v += yStep, n++) {
+    if (Math.abs(v) < yStep * 0.0001) continue;
+    if (v < ymin + yArrowZone || v > ymax - yArrowZone) continue;
+    const wy = originY - (v - cyMath) * uy;
+    labels.push({ x: yAxisWorldX - tickLen/2 - labelGap, y: wy, text: fmt(v, yStep), anchor: 'middle-right' });
+  }
+  return labels;
+}
+
+document.getElementById('graphPlace').onclick = () => {
+  const latexFn = document.getElementById('g1d_fn').value;
+  // Empty input: Place is a no-op for adding content, but still close the modal
+  // since the user clearly meant to dismiss it.
+  if (!latexFn.trim()) {
+    state.editingGraphId = null;
+    closeModal('graphModal');
+    return;
+  }
+
+  const settings = readGraphSettings();
+
+  const r = wrap.getBoundingClientRect();
+  const center = screenToWorld(r.width/2, r.height/2);
+  const screenSpan = Math.min(r.width * 0.7, 720);
+  const previousActiveLayerId = state.activeLayerId;
+
+  // If editing an existing graph, remove its old strokes (axes + curve) and reuse its origin
+  let originX = center.x, originY = center.y;
+  let layer = null;
+  let editing = false;
+  if (state.editingGraphId && state.graphs[state.editingGraphId]) {
+    const g = state.graphs[state.editingGraphId];
+    originX = g.originX;
+    originY = g.originY;
+    editing = true;
+    const targetLayer = state.layers.find(l => l.id === g.layerId);
+    if (targetLayer) {
+      // Filter out the old graph's strokes (curve, axes, tick marks, tick labels — all
+      // tagged with graphId). They'll be regenerated from the updated settings below.
+      targetLayer.strokes = targetLayer.strokes.filter(s => s.graphId !== state.editingGraphId);
+      layer = targetLayer;
+    }
+  }
+
+  // Parse the equation up-front so we can fail fast and avoid creating an orphan layer
+  let parsed;
+  try {
+    parsed = parseEquation(latexFn);
+  } catch (err) {
+    showGraphPreviewError('parse error: ' + err.message);
+    return;
+  }
+
+  // Otherwise, create a fresh layer named with the full equation. Plot layers go to the
+  // BOTTOM of the stack (index 0) so the user's sketch strokes naturally appear over them.
+  if (!editing) {
+    const labelTrunc = parsed.original.length > 32 ? parsed.original.slice(0, 32) + '…' : parsed.original;
+    layer = makeLayer('Plot: ' + labelTrunc);
+    state.layers.unshift(layer);
+    renderLayerList();
+  }
+
+  const graphId = editing ? state.editingGraphId : 'G' + (nextGraphId++);
+
+  // Generate the curve strokes (may throw if expression is malformed at compile time)
+  let curveStrokes;
+  try {
+    curveStrokes = generateEquationStrokes(parsed, settings, originX, originY, screenSpan, state.view.scale, graphId);
+  } catch (err) {
+    showGraphPreviewError('parse error: ' + err.message);
+    if (!editing) {
+      state.layers = state.layers.filter(l => l.id !== layer.id);
+      renderLayerList();
+    }
+    return;
+  }
+  if (!curveStrokes.length) {
+    showGraphPreviewError('no plot data — check the equation');
+    if (!editing) {
+      state.layers = state.layers.filter(l => l.id !== layer.id);
+      renderLayerList();
+    }
+    return;
+  }
+
+  // Add 2D axes underneath (same graphId so they group on selection / re-edit)
+  const axesStrokes = buildAxes2DStrokes(settings, originX, originY, screenSpan, state.view.scale, graphId, state.penColor);
+  for (const s of axesStrokes) layer.strokes.push(s);
+  for (const s of curveStrokes) layer.strokes.push(s);
+
+  // Tick labels: numbered text drawn directly on the canvas (as 'text' kind strokes)
+  // alongside each tick mark. Canvas-rendered means they share the exact same coordinate
+  // transform as the tick marks themselves — no sub-pixel drift between embed and canvas
+  // across zoom levels, which was a real problem when these were HTML embeds.
+  if (settings.showTicks) {
+    const labels = computeTickLabels(settings, originX, originY, screenSpan, state.view.scale);
+    const labelSize = 11 / state.view.scale;  // world units — scales with view, like strokes do
+    for (const lab of labels) {
+      layer.strokes.push({
+        kind: 'text',
+        x: lab.x, y: lab.y,
+        text: lab.text,
+        size: labelSize,
+        color: '#1a1a1a',
+        anchor: lab.anchor,
+        graphId,
+        opacity: 0.7,
+      });
+    }
+  }
+
+  state.graphs[graphId] = {
+    latex: latexFn,
+    originX, originY,
+    screenSpan,
+    layerId: layer.id,
+    settings,
+  };
+
+  // Restore the user's previous active layer so they aren't bumped onto the graph layer
+  if (!editing) state.activeLayerId = previousActiveLayerId;
+
+  state.editingGraphId = null;
+  closeModal('graphModal');
+  setTool('pen');
+  render();
+  renderLayerList();
+  pushHistory(editing ? 'Edit graph' : 'Add graph');
+};
+
+// Open the graph modal pre-filled with an existing graph's source and switch to edit mode.
+function openGraphModalForGraphId(graphId) {
+  const g = state.graphs[graphId];
+  if (!g) return;
+  state.editingGraphId = graphId;
+  document.getElementById('g1d_fn').value = g.latex;
+  writeGraphSettings(g.settings || defaultGraphSettings());
+  document.getElementById('graphModal').style.display = 'flex';
+  renderLatexPreview('g1d_render', g.latex);
+  ensureGraphDeps().then(previewGraph);
+}
+
+/* =========================================================================
+   HISTORY — snapshot-based with click-to-restore
+   ========================================================================= */
+
+// Each entry: { id, label, time, snapshot }
+// snapshot is a deep-clone of the relevant state needed to restore.
+// state.historyIndex points at the "current" entry. Entries after it are "future" (redoable).
+// We snapshot the initial state and after every meaningful action.
+
+function snapshotState() {
+  // Deep-clone layers (without DOM refs) and embeds (without DOM elements - those are recreated)
+  const layers = state.layers.map(layer => ({
+    id: layer.id,
+    name: layer.name,
+    visible: layer.visible,
+    strokes: layer.strokes.map(s => {
+      if (s.kind === 'image') {
+        return {
+          kind: 'image',
+          x: s.x, y: s.y, w: s.w, h: s.h,
+          src: s.src,
+          opacity: s.opacity,
+        };
+      }
+      if (s.kind === 'text') {
+        return {
+          kind: 'text',
+          x: s.x, y: s.y,
+          text: s.text,
+          size: s.size,
+          color: s.color,
+          anchor: s.anchor,
+          graphId: s.graphId,
+          opacity: s.opacity,
+        };
+      }
+      return {
+        color: s.color,
+        width: s.width,
+        mode: s.mode,
+        points: s.points.map(p => ({ x: p.x, y: p.y })),
+        graphId: s.graphId,
+        opacity: s.opacity,
+      };
+    }),
+    embeds: layer.embeds.map(em => ({
+      id: em.id,
+      type: em.type,
+      x: em.x, y: em.y, w: em.w, h: em.h,
+      rotation: em.rotation || 0,
+      data: { ...em.data },
+    })),
+  }));
+  return {
+    layers,
+    activeLayerId: state.activeLayerId,
+    nextLayerId,
+    nextEmbedId,
+    nextGraphId,
+    graphs: JSON.parse(JSON.stringify(state.graphs || {})),
+  };
+}
+
+function restoreSnapshot(snap) {
+  // Tear down existing embed DOM
+  for (const layer of state.layers) {
+    for (const em of layer.embeds) em.el && em.el.remove();
+  }
+  // Cancel any selection
+  if (state.selection) {
+    for (const em of state.selection.embeds) em.el && em.el.remove();
+  }
+  state.selection = null;
+
+  // Rebuild layers with fresh embed DOM elements
+  state.layers = snap.layers.map(layer => ({
+    id: layer.id,
+    name: layer.name,
+    visible: layer.visible,
+    strokes: layer.strokes.map(s => {
+      if (s.kind === 'image') {
+        return {
+          kind: 'image',
+          x: s.x, y: s.y, w: s.w, h: s.h,
+          src: s.src,
+          opacity: s.opacity,
+        };
+      }
+      if (s.kind === 'text') {
+        return {
+          kind: 'text',
+          x: s.x, y: s.y,
+          text: s.text,
+          size: s.size,
+          color: s.color,
+          anchor: s.anchor,
+          graphId: s.graphId,
+          opacity: s.opacity,
+        };
+      }
+      return {
+        color: s.color,
+        width: s.width,
+        mode: s.mode,
+        points: s.points.map(p => ({ x: p.x, y: p.y })),
+        graphId: s.graphId,
+        opacity: s.opacity,
+      };
+    }),
+    embeds: [],
+  }));
+
+  // Recreate embed DOM and attach to their layers
+  for (let i = 0; i < snap.layers.length; i++) {
+    const snapLayer = snap.layers[i];
+    const layer = state.layers[i];
+    for (const ed of snapLayer.embeds) {
+      const em = createEmbedFromData(ed.type, ed.data, ed.x, ed.y, ed.w, ed.h);
+      em.id = ed.id;
+      em.rotation = ed.rotation;
+      em.el.dataset.embedId = em.id;
+      layer.embeds.push(em);
+    }
+  }
+
+  state.activeLayerId = snap.activeLayerId;
+  // Make sure active layer exists; fall back to last layer
+  if (!state.layers.find(l => l.id === state.activeLayerId)) {
+    state.activeLayerId = state.layers.length ? state.layers[state.layers.length - 1].id : null;
+  }
+  nextLayerId = snap.nextLayerId;
+  nextEmbedId = snap.nextEmbedId;
+  if (snap.nextGraphId) nextGraphId = snap.nextGraphId;
+  state.graphs = snap.graphs || {};
+
+  renderLayerList();
+  render();
+}
+
+let nextHistoryId = 1;
+function pushHistory(label) {
+  // If we're not at the end (because of undo), drop "future" entries
+  if (state.historyIndex < state.history.length - 1) {
+    state.history = state.history.slice(0, state.historyIndex + 1);
+  }
+  const entry = {
+    id: 'H' + (nextHistoryId++),
+    label,
+    time: new Date(),
+    snapshot: snapshotState(),
+  };
+  state.history.push(entry);
+  // Cap at 80 entries to control memory; drop oldest
+  if (state.history.length > 80) {
+    state.history.shift();
+  }
+  state.historyIndex = state.history.length - 1;
+  renderHistoryPanel();
+  syncUndoRedoButtons();
+}
+
+function undo() {
+  if (state.historyIndex <= 0) return;
+  state.historyIndex--;
+  restoreSnapshot(state.history[state.historyIndex].snapshot);
+  renderHistoryPanel();
+  syncUndoRedoButtons();
+}
+
+function redo() {
+  if (state.historyIndex >= state.history.length - 1) return;
+  state.historyIndex++;
+  restoreSnapshot(state.history[state.historyIndex].snapshot);
+  renderHistoryPanel();
+  syncUndoRedoButtons();
+}
+
+function jumpToHistory(idx) {
+  if (idx < 0 || idx >= state.history.length) return;
+  state.historyIndex = idx;
+  restoreSnapshot(state.history[idx].snapshot);
+  renderHistoryPanel();
+  syncUndoRedoButtons();
+}
+
+function syncUndoRedoButtons() {
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  if (undoBtn) undoBtn.classList.toggle('disabled', state.historyIndex <= 0);
+  if (redoBtn) redoBtn.classList.toggle('disabled', state.historyIndex >= state.history.length - 1);
+}
+
+function renderHistoryPanel() {
+  const list = document.getElementById('historyList');
+  if (!list) return;
+  list.innerHTML = '';
+  // Oldest first (top), newest at bottom
+  for (let i = 0; i < state.history.length; i++) {
+    const entry = state.history[i];
+    const row = document.createElement('div');
+    row.className = 'history-row';
+    if (i === state.historyIndex) row.classList.add('current');
+    if (i > state.historyIndex) row.classList.add('future');
+    const marker = document.createElement('span');
+    marker.className = 'history-marker';
+    row.appendChild(marker);
+    const text = document.createElement('span');
+    text.className = 'history-text';
+    text.textContent = entry.label;
+    row.appendChild(text);
+    row.onclick = () => jumpToHistory(i);
+    list.appendChild(row);
+  }
+  // Auto-scroll to keep the current item visible (defaults to bottom for fresh actions)
+  const currentRow = list.querySelector('.history-row.current');
+  if (currentRow) currentRow.scrollIntoView({ block: 'nearest' });
+}
+
+/* =========================================================================
+   TOOLS HOOKUP
+   ========================================================================= */
+document.getElementById('toolCluster').addEventListener('click', (e) => {
+  const btn = e.target.closest('.tool'); if (!btn) return;
+  setTool(btn.dataset.tool);
+});
+
+function setTool(t) {
+  state.tool = t;
+  document.querySelectorAll('.tool').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
+  if (t !== 'select') cancelSelection();
+  if (t === 'graph') {
+    // Don't re-open the modal if it's already showing
+    const gm = document.getElementById('graphModal');
+    if (gm.style.display !== 'flex') openGraphModal();
+  }
+  // Axes tools: insert immediately at viewport center, then revert to pen
+  if (t === 'axes2d' || t === 'axes3d') {
+    insertAxes(t);
+    state.tool = 'pen';
+    document.querySelectorAll('.tool').forEach(b => b.classList.toggle('active', b.dataset.tool === 'pen'));
+    canvas.style.cursor = 'crosshair';
+    return;
+  }
+  if (t === 'pen') canvas.style.cursor = 'crosshair';
+  else if (t === 'eraser') canvas.style.cursor = 'none';
+  else if (t === 'select') canvas.style.cursor = 'crosshair';
+  else if (t === 'text') canvas.style.cursor = 'text';
+  else canvas.style.cursor = 'default';
+  // Sync size select to whichever tool's size is active now. The select only has fixed
+  // common values; snap to the nearest one for display.
+  const sizeInput = document.getElementById('penSize');
+  if (sizeInput) {
+    sizeInput.value = nearestSizeOption(activeToolSize());
+  }
+}
+
+// Snap a numeric size to the nearest value in the size select's options.
+function nearestSizeOption(target) {
+  const opts = [1, 2, 4, 8, 16, 32, 64];
+  let best = opts[0], bestDiff = Math.abs(opts[0] - target);
+  for (const o of opts) {
+    const d = Math.abs(o - target);
+    if (d < bestDiff) { best = o; bestDiff = d; }
+  }
+  return best;
+}
+
+// Recolor: debounce-push history so a continuous picker drag becomes one undo step.
+// We track whether the current "recolor session" has affected anything so we only push when needed.
+let _recolorPending = null;
+let _recolorAffected = false;
+function commitRecolorHistory() {
+  _recolorPending = null;
+  if (!_recolorAffected) return;
+  _recolorAffected = false;
+  if (state.selection && (state.selection.strokes.length || state.selection.embeds.length)) {
+    // Commit the lifted selection so the recolored strokes/embeds are captured by snapshotState
+    commitSelection();
+  }
+  pushHistory('Recolor');
+}
+document.getElementById('penColor').addEventListener('input', e => {
+  const c = e.target.value;
+  state.penColor = c;
+  // If there's a current selection, recolor everything in it (strokes + text embeds).
+  // Eraser strokes are skipped — color is meaningless for them.
+  if (state.selection) {
+    for (const s of state.selection.strokes) {
+      if (s.mode !== 'eraser') s.color = c;
+    }
+    for (const em of state.selection.embeds) {
+      if (em.type === 'text' && em.data) {
+        em.data.color = c;
+        if (em.el) em.el.style.color = c;
+      }
+    }
+    render();
+    _recolorAffected = true;
+    if (_recolorPending) clearTimeout(_recolorPending);
+    _recolorPending = setTimeout(commitRecolorHistory, 400);
+  }
+});
+// Also fire on `change` (when the picker closes) as a backstop in case the timer hasn't fired.
+document.getElementById('penColor').addEventListener('change', () => {
+  if (_recolorPending) { clearTimeout(_recolorPending); commitRecolorHistory(); }
+});
+// Throttle bgColor renders to once per animation frame so the native color picker doesn't flicker
+// (continuous render() calls during the input drag can starve the picker UI).
+let _bgColorRafPending = false;
+document.getElementById('bgColor').addEventListener('input', e => {
+  state.bgColor = e.target.value;
+  if (_bgColorRafPending) return;
+  _bgColorRafPending = true;
+  requestAnimationFrame(() => { _bgColorRafPending = false; render(); });
+});
+document.getElementById('penSize').addEventListener('change', e => {
+  const v = parseInt(e.target.value, 10);
+  setActiveToolSize(v);
+  if (state.tool === 'eraser') render();
+});
+document.getElementById('sizeResetBtn').addEventListener('click', () => {
+  // Default sizes per tool — keep these aligned with the initial state
+  const defaults = { pen: 4, eraser: 32 };
+  const def = defaults[state.tool];
+  if (def === undefined) return;
+  setActiveToolSize(def);
+  document.getElementById('penSize').value = nearestSizeOption(def);
+  if (state.tool === 'eraser') render();
+});
+// Size-lock toggle: when ON, captures the current zoom and uses it for all subsequent stroke
+// widths, so strokes stay visually constant on screen as the user zooms.
+document.getElementById('sizeLockBtn').addEventListener('click', () => {
+  const btn = document.getElementById('sizeLockBtn');
+  const icon = document.getElementById('sizeLockIcon');
+  if (state.sizeLockedScale == null) {
+    state.sizeLockedScale = state.view.scale;
+    btn.classList.add('locked');
+    btn.title = 'Unlock stroke size (L) — currently locked at ' + Math.round(state.view.scale * 100) + '% zoom';
+    // Closed-padlock icon
+    icon.innerHTML = '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 a4 4 0 0 1 8 0 V11"/>';
+  } else {
+    state.sizeLockedScale = null;
+    btn.classList.remove('locked');
+    btn.title = 'Lock stroke size to current zoom (L)';
+    // Open-padlock icon
+    icon.innerHTML = '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11 V7 a4 4 0 0 1 8 0"/>';
+  }
+});
+document.getElementById('gridBtn').addEventListener('click', () => {
+  state.showGrid = !state.showGrid;
+  document.getElementById('gridBtn').classList.toggle('active', state.showGrid);
+  render();
+});
+document.getElementById('resetViewBtn').onclick = () => { state.view = { x: 0, y: 0, scale: 1 }; render(); };
+document.getElementById('undoBtn').onclick = undo;
+document.getElementById('redoBtn').onclick = redo;
+document.getElementById('resetBtn').onclick = () => {
+  showConfirmModal(
+    'Reset everything?',
+    'This clears all layers, embeds, history, and settings.',
+    doFullReset
+  );
+};
+
+function doFullReset() {
+  // Cancel any active selection first (remove its embed DOM nodes)
+  if (state.selection) {
+    for (const em of state.selection.embeds) em.el && em.el.remove();
+    state.selection = null;
+  }
+  state.selDrag = null;
+
+  // Remove ALL embeds from DOM by clearing the embed layer entirely (catches any orphans)
+  embedLayer.innerHTML = '';
+
+  // Reset core data state
+  state.layers = [];
+  state.history = [];
+  state.historyIndex = -1;
+  state.view = { x: 0, y: 0, scale: 1 };
+  state.clipboard = null;
+  state.currentStroke = null;
+  state.drawing = false;
+  state.panning = false;
+
+  // Reset settings to defaults
+  state.penColor = '#1a1a1a';
+  state.bgColor = '#ffffff';
+  state.penSize = 4;
+  state.eraserSize = 40;
+  state.showGrid = false;
+
+  // Reset ID counters
+  nextLayerId = 1;
+  nextEmbedId = 1;
+  nextHistoryId = 1;
+
+  // Sync UI controls back to defaults
+  document.getElementById('penColor').value = state.penColor;
+  document.getElementById('bgColor').value = state.bgColor;
+  document.getElementById('penSize').value = nearestSizeOption(activeToolSize());
+  document.getElementById('gridBtn').classList.remove('active');
+
+  // Close any open modals
+  document.getElementById('graphModal').style.display = 'none';
+
+  // Create a fresh starter layer
+  const l = makeLayer('Sketch');
+  state.layers.push(l);
+  state.activeLayerId = l.id;
+
+  // Update UI + render
+  setTool('pen');
+  renderLayerList();
+  syncZoomSlider();
+  render();
+
+  // Snapshot the clean state as the new starting point
+  pushHistory('Reset');
+}
+
+/* =========================================================================
+   ZOOM SLIDER — log scale between min and max zoom
+   ========================================================================= */
+const ZOOM_MIN = 0.01, ZOOM_MAX = 40;
+
+function zoomToSlider(scale) {
+  // log scale: slider value 0..1000 maps to log(ZOOM_MIN)..log(ZOOM_MAX)
+  const logMin = Math.log(ZOOM_MIN), logMax = Math.log(ZOOM_MAX);
+  const t = (Math.log(scale) - logMin) / (logMax - logMin);
+  return Math.max(0, Math.min(1000, Math.round(t * 1000)));
+}
+function sliderToZoom(value) {
+  const logMin = Math.log(ZOOM_MIN), logMax = Math.log(ZOOM_MAX);
+  const t = value / 1000;
+  return Math.exp(logMin + t * (logMax - logMin));
+}
+function syncZoomSlider() {
+  const slider = document.getElementById('zoomSlider');
+  if (!slider) return;
+  const v = zoomToSlider(state.view.scale);
+  slider.value = v;
+  // Update fill via CSS variable
+  const pct = (v / 1000) * 100;
+  slider.style.setProperty('--zoom-fill', pct + '%');
+}
+document.getElementById('zoomSlider').addEventListener('input', e => {
+  const newScale = sliderToZoom(parseFloat(e.target.value));
+  // Zoom around viewport center
+  const r = wrap.getBoundingClientRect();
+  const cx = r.width / 2, cy = r.height / 2;
+  const wp0 = screenToWorld(cx, cy);
+  state.view.scale = newScale;
+  const wp1 = screenToWorld(cx, cy);
+  state.view.x += wp0.x - wp1.x;
+  state.view.y += wp0.y - wp1.y;
+  // Update fill
+  const pct = (parseFloat(e.target.value) / 1000) * 100;
+  e.target.style.setProperty('--zoom-fill', pct + '%');
+  render();
+});
+
+// Zoom readout as a text input: click to type a percentage directly. Parses "150", "150%",
+// or "1.5" (treated as 150%) and clamps to the zoom range. Enter commits, Escape reverts.
+(function setupZoomReadoutInput() {
+  const zoomEl = document.getElementById('zoomReadout');
+  if (!zoomEl) return;
+  const commit = () => {
+    const raw = zoomEl.value.trim().replace(/%/g, '');
+    let n = parseFloat(raw);
+    if (!isFinite(n) || n <= 0) {
+      // Reset to current on invalid input
+      zoomEl.value = Math.round(state.view.scale * 100) + '%';
+      return;
+    }
+    // Under 4 → treated as a direct multiplier (e.g. "1.5" → 150%); otherwise as a percentage.
+    const targetScale = n < 4 ? n : n / 100;
+    const clamped = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, targetScale));
+    // Zoom around viewport center so the change stays visually anchored.
+    const r = wrap.getBoundingClientRect();
+    const cx = r.width / 2, cy = r.height / 2;
+    const wp0 = screenToWorld(cx, cy);
+    state.view.scale = clamped;
+    const wp1 = screenToWorld(cx, cy);
+    state.view.x += wp0.x - wp1.x;
+    state.view.y += wp0.y - wp1.y;
+    render();  // triggers re-sync of the readout
+  };
+  zoomEl.addEventListener('focus', () => {
+    // Show plain number without % on focus so typing is easier
+    zoomEl.value = Math.round(state.view.scale * 100);
+    zoomEl.select();
+  });
+  zoomEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); zoomEl.blur(); }
+    else if (e.key === 'Escape') {
+      // Restore without applying, then blur
+      zoomEl.value = Math.round(state.view.scale * 100) + '%';
+      zoomEl.blur();
+    }
+  });
+  zoomEl.addEventListener('blur', commit);
+})();
+
+/* =========================================================================
+   KEYBOARD
+   ========================================================================= */
+document.addEventListener('keydown', (e) => {
+  // Escape closes any open modal regardless of focus context
+  if (e.key === 'Escape') {
+    const confirmM = document.getElementById('confirmModal');
+    const graphM = document.getElementById('graphModal');
+    if (confirmM.style.display !== 'none') {
+      confirmM.style.display = 'none';
+      _confirmCallback = null;
+      return;
+    }
+    if (graphM.style.display !== 'none') { closeModal('graphModal'); return; }
+    if (state.selection) { cancelSelection(); return; }
+  }
+
+  const t = e.target.tagName;
+  if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+
+  if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); redo(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c') { copySelection(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v') { pasteClipboard(); return; }
+
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    if (state.selection) { e.preventDefault(); deleteSelection(); }
+    return;
+  }
+  if (e.key === 'Enter') { if (state.selection) { e.preventDefault(); commitSelection(); } return; }
+
+  // Tool hotkeys (letters and digits)
+  const k = e.key.toLowerCase();
+  if (k === 'l') { document.getElementById('sizeLockBtn').click(); return; }
+  if (k === 'p') setTool('pen');
+  else if (k === 'e') setTool('eraser');
+  else if (k === 's') setTool('select');
+  else if (k === 't') setTool('text');
+  else if (k === '1') setTool('graph');
+  else if (k === '2') setTool('axes2d');
+  else if (k === '3') setTool('axes3d');
+});
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+  if (id === 'graphModal') {
+    state.editingGraphId = null;
+  }
+  if (state.tool === 'text' || state.tool === 'graph') setTool('pen');
+}
+document.querySelectorAll('[data-close]').forEach(b => {
+  b.addEventListener('click', () => closeModal(b.dataset.close));
+});
+
+/* In-page confirm modal — works in sandboxed iframes where window.confirm is blocked */
+let _confirmCallback = null;
+function showConfirmModal(title, message, onConfirm) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').textContent = message;
+  document.getElementById('confirmModal').style.display = 'flex';
+  _confirmCallback = onConfirm;
+  // Focus the Confirm button so Enter activates it (and Tab stays inside the modal).
+  setTimeout(() => document.getElementById('confirmOk').focus(), 50);
+}
+document.getElementById('confirmOk').addEventListener('click', () => {
+  document.getElementById('confirmModal').style.display = 'none';
+  const cb = _confirmCallback;
+  _confirmCallback = null;
+  if (cb) cb();
+});
+document.getElementById('confirmCancel').addEventListener('click', () => {
+  document.getElementById('confirmModal').style.display = 'none';
+  _confirmCallback = null;
+});
+// Enter inside the open confirm modal triggers Confirm regardless of which element has focus.
+document.getElementById('confirmModal').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('confirmOk').click();
+  }
+});
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+function init() {
+  const l1 = makeLayer('Sketch');
+  state.layers.push(l1);
+  state.activeLayerId = l1.id;
+  renderLayerList();
+  resizeCanvas();
+  setTool('pen');
+  syncZoomSlider();
+  pushHistory('Start');
+}
+init();
+</script></body></html>
